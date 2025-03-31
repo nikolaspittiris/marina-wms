@@ -1,0 +1,2051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warehouse Management System</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: Arial, Helvetica, sans-serif; 
+            background: #f0f2f5; 
+            color: #1a202c; 
+            padding: 10px; 
+            line-height: 1.5; 
+            font-size: 14px; 
+        }
+        .header { 
+            background: linear-gradient(135deg, #2d3748, #4a5568); 
+            color: #fff; 
+            padding: 15px; 
+            text-align: center; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+            margin-bottom: 15px; 
+        }
+        .header h1 { font-size: 1.5em; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        .header .info, .header .user-info { font-size: 0.9em; color: #e2e8f0; margin-top: 5px; }
+        h2 { 
+            background: linear-gradient(90deg, #4a5568, #718096); 
+            color: #fff; 
+            padding: 10px 15px; 
+            font-size: 1.2em; 
+            font-weight: 500; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            margin-bottom: 10px; 
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1); 
+        }
+        #managementSection h2 { background: linear-gradient(90deg, #4a5568, #718096); }
+        #goodsInSection h2 { background: linear-gradient(90deg, #38a169, #68d391); }
+        #goodsOutSection h2 { background: linear-gradient(90deg, #e53e3e, #f56565); }
+        #transferGoodsSection h2 { background: linear-gradient(90deg, #3182ce, #63b3ed); }
+        #statusSection h2 { background: linear-gradient(90deg, #4a5568, #718096); cursor: default; }
+        .section { 
+            background: #fff; 
+            padding: 15px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
+            margin-bottom: 15px; 
+            border: 1px solid #e2e8f0; 
+        }
+        .compact-container { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+            gap: 15px; 
+        }
+        .full-width { grid-column: 1 / -1; }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            background: #fff; 
+            border-radius: 6px; 
+            overflow: hidden; 
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05); 
+        }
+        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #edf2f7; font-size: 0.9em; }
+        th { 
+            background: #edf2f7; 
+            color: #4a5568; 
+            font-weight: 600; 
+            text-transform: uppercase; 
+            cursor: pointer; 
+        }
+        #statusTable th { background: #e6f0fa; }
+        th[data-sort]::after { 
+            content: ''; 
+            display: inline-block; 
+            margin-left: 5px; 
+            width: 0; 
+            height: 0; 
+            border-left: 4px solid transparent; 
+            border-right: 4px solid transparent; 
+            vertical-align: middle; 
+        }
+        th.sort-asc::after { border-bottom: 4px solid #4a5568; }
+        th.sort-desc::after { border-top: 4px solid #4a5568; }
+        td { color: #2d3748; }
+        tr:nth-child(even) { background: #f7fafc; }
+        #statusTable tr:nth-child(even) { background: #f0f7ff; }
+        tr:hover { background: #edf2f7; }
+        #statusTable tr:hover { background: #dbe9ff; }
+        .low-stock { background: #fefcbf; }
+        #statusTable .low-stock { background: #fff3cd; }
+        #managementSection { 
+            background: #edf2f7; 
+            padding: 15px; 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+            gap: 15px; 
+        }
+        #managementSection .sub-section { 
+            background: #fff; 
+            padding: 15px; 
+            border-radius: 6px; 
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05); 
+        }
+        #managementSection h3 { font-size: 1.1em; font-weight: 600; margin-bottom: 10px; color: #2d3748; }
+        #goodsInSection { border: 1px solid #38a169; }
+        #goodsOutSection { border: 1px solid #e53e3e; }
+        #transferGoodsSection { border: 1px solid #3182ce; }
+        .input-group { 
+            display: grid; 
+            grid-template-columns: 120px 1fr; 
+            gap: 10px; 
+            align-items: center; 
+            margin-bottom: 12px; 
+        }
+        .input-group.subcategory-group { grid-template-columns: 120px 1fr 100px 60px; }
+        .input-group label { 
+            text-align: right; 
+            color: #4a5568; 
+            font-size: 0.9em; 
+            font-weight: 500; 
+        }
+        .input-group input, .input-group select { 
+            padding: 8px; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 4px; 
+            font-size: 0.9em; 
+            transition: border-color 0.2s, box-shadow 0.2s; 
+        }
+        .input-group input:focus, .input-group select:focus { 
+            border-color: #007bff; 
+            box-shadow: 0 0 0 2px rgba(0,123,255,0.1); 
+            outline: none; 
+        }
+        button { 
+            padding: 8px 15px; 
+            border: none; 
+            border-radius: 4px; 
+            background: #007bff; 
+            color: #fff; 
+            font-size: 0.9em; 
+            font-weight: 500; 
+            cursor: pointer; 
+            transition: background 0.2s, transform 0.1s; 
+        }
+        button:hover { background: #0056b3; transform: translateY(-1px); }
+        button:disabled { background: #a0aec0; cursor: not-allowed; transform: none; }
+        .control-buttons { 
+            display: flex; 
+            justify-content: center; 
+            gap: 10px; 
+            margin-top: 12px; 
+        }
+        .pagination { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            gap: 12px; 
+            margin-top: 15px; 
+        }
+        .pagination span { font-size: 0.9em; color: #4a5568; }
+        .pagination select { padding: 6px; border-radius: 4px; border: 1px solid #e2e8f0; }
+        .table-footer { 
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+            align-items: center; 
+            gap: 15px; 
+            margin-top: 15px; 
+        }
+        .error, .success { 
+            font-size: 0.85em; 
+            margin-top: 8px; 
+            text-align: center; 
+            display: none; 
+        }
+        .error { color: #e53e3e; } 
+        .success { color: #38a169; }
+        #authSection { 
+            background: #fff; 
+            max-width: 400px; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+            position: fixed; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%); 
+            border: 1px solid #e2e8f0; 
+        }
+        #authSection h1 { font-size: 1.5em; font-weight: bold; color: #2d3748; margin-bottom: 15px; }
+        #mainContent { display: none; }
+        .toggle-section { display: none; }
+        .toggle-section.active { display: block; }
+        .quick-filters { 
+            display: flex; 
+            justify-content: flex-start; 
+            gap: 10px; 
+            margin-bottom: 12px; 
+        }
+        #statusBody, #receiptsBody, #auditBody { max-height: 300px; overflow-y: auto; }
+        #auditSection { border: 1px solid #718096; }
+        #auditSection h2 { background: linear-gradient(90deg, #718096, #a0aec0); }
+        .spinner { 
+            display: none; 
+            width: 20px; 
+            height: 20px; 
+            border: 3px solid #e2e8f0; 
+            border-top: 3px solid #007bff; 
+            border-radius: 50%; 
+            animation: spin 1s linear infinite; 
+            margin: 0 auto; 
+        }
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
+        .spinner.active { display: block; }
+    </style>
+</head>
+<body>
+    <div id="authSection">
+        <h1>Marina Storekeeper WMS</h1>
+        <h2>Login</h2>
+        <div class="input-group"><label>Username:</label><input id="usernameInput"></div>
+        <div class="input-group"><label>Password:</label><input type="password" id="passwordInput"></div>
+        <div class="control-buttons"><button onclick="authenticateUser()">Login</button></div>
+        <div id="authError" class="error"></div>
+    </div>
+
+    <div id="mainContent">
+        <div class="header">
+            <h1>Marina Storekeeper WMS</h1>
+            <div class="info">Developed by Nikolas Pittiris for M.M. Makronisos Marina Ltd, Cyprus 2025.</div>
+            <div class="user-info">Logged in as: <span id="currentUser"></span></div>
+            <div class="control-buttons">
+                <button onclick="toggleAllSections()">Toggle All Sections</button>
+                <button onclick="logout()">Log Out</button>
+            </div>
+        </div>
+
+        <div class="section" id="managementSection">
+            <h2 onclick="toggleSection('managementContent')">Management</h2>
+            <div id="managementContent" class="toggle-section">
+                <div class="sub-section">
+                    <h3>User Management</h3>
+                    <div class="input-group"><label>Username:</label><input id="newUserName"></div>
+                    <div class="input-group"><label>Password:</label><input id="newUserPassword"></div>
+                    <div class="input-group"><label>Full Name:</label><input id="newUserFullName"></div>
+                    <div class="input-group"><label>Level:</label><select id="newUserLevel"><option value="Operator">Operator</option><option value="Management">Management</option><option value="Admin">Admin</option></select></div>
+                    <div class="control-buttons"><button onclick="addUser()">Add User</button></div>
+                    <div id="userError" class="error"></div>
+                    <table id="userTable"><thead><tr><th data-sort="username" onclick="sortTable('userTable', 'username')">Username</th><th data-sort="fullName" onclick="sortTable('userTable', 'fullName')">Full Name</th><th data-sort="level" onclick="sortTable('userTable', 'level')">Level</th><th>Action</th></tr></thead><tbody id="userList"></tbody></table>
+                    <div class="table-footer">
+                        <div class="pagination">
+                            <button onclick="changeUserPage(-1)">Prev</button>
+                            <span id="userPageInfo"></span>
+                            <button onclick="changeUserPage(1)">Next</button>
+                            <select id="userRowsPerPage" onchange="updateUserList()">
+                                <option value="5">5</option><option value="10" selected>10</option><option value="20">20</option><option value="50">50</option>
+                            </select>
+                        </div>
+                        <div class="control-buttons"><button onclick="updateUserList()">Refresh</button></div>
+                    </div>
+                </div>
+
+                <div class="sub-section">
+                    <h3>Location Management</h3>
+                    <div class="input-group"><label>Location:</label><input id="newLocation"></div>
+                    <div class="control-buttons"><button onclick="addLocation()">Add</button></div>
+                    <div id="locationError" class="error"></div>
+                    <table id="locationTable"><thead><tr><th data-sort="location" onclick="sortTable('locationTable', 'location')">Location</th><th>Action</th></tr></thead><tbody id="locationList"></tbody></table>
+                    <div class="table-footer">
+                        <div class="pagination">
+                            <button onclick="changeLocationPage(-1)">Prev</button>
+                            <span id="locationPageInfo"></span>
+                            <button onclick="changeLocationPage(1)">Next</button>
+                            <select id="locationRowsPerPage" onchange="updateLocationList()">
+                                <option value="5">5</option><option value="10" selected>10</option><option value="20">20</option><option value="50">50</option>
+                            </select>
+                        </div>
+                        <div class="control-buttons"><button onclick="updateLocationList()">Refresh</button></div>
+                    </div>
+                </div>
+
+                <div class="sub-section">
+                    <h3>Category Management</h3>
+                    <div class="input-group"><label>Category:</label><input id="newCategory"></div>
+                    <div class="control-buttons"><button onclick="addCategory()">Add</button></div>
+                    <div class="input-group subcategory-group"><label>Sub-Category:</label><input id="newSubCategory"><select id="categoryForSub"><option value="">Select Category</option></select><button onclick="addSubCategory()">Add</button></div>
+                    <div id="categoryError" class="error"></div>
+                    <table id="categoryTable"><thead><tr><th data-sort="category" onclick="sortTable('categoryTable', 'category')">Category</th><th>Sub-Categories</th><th>Action</th></tr></thead><tbody id="categoryList"></tbody></table>
+                    <div class="table-footer">
+                        <div class="pagination">
+                            <button onclick="changeCategoryPage(-1)">Prev</button>
+                            <span id="categoryPageInfo"></span>
+                            <button onclick="changeCategoryPage(1)">Next</button>
+                            <select id="categoryRowsPerPage" onchange="updateCategoryList()">
+                                <option value="5">5</option><option value="10" selected>10</option><option value="20">20</option><option value="50">50</option>
+                            </select>
+                        </div>
+                        <div class="control-buttons"><button onclick="updateCategoryList()">Refresh</button></div>
+                    </div>
+                </div>
+
+                <div class="sub-section">
+                    <h3>Staff Management</h3>
+                    <div class="input-group"><label>Staff Name:</label><input id="newStaff"></div>
+                    <div class="input-group"><label>Department:</label><select id="newStaffDepartment"></select></div>
+                    <div class="control-buttons"><button onclick="addStaff()">Add</button></div>
+                    <div id="staffError" class="error"></div>
+                    <table id="staffTable"><thead><tr><th data-sort="name" onclick="sortTable('staffTable', 'name')">Name</th><th data-sort="department" onclick="sortTable('staffTable', 'department')">Department</th><th data-sort="active" onclick="sortTable('staffTable', 'active')">Active</th><th>Action</th></tr></thead><tbody id="staffList"></tbody></table>
+                    <div class="table-footer">
+                        <div class="pagination">
+                            <button onclick="changeStaffPage(-1)">Prev</button>
+                            <span id="staffPageInfo"></span>
+                            <button onclick="changeStaffPage(1)">Next</button>
+                            <select id="staffRowsPerPage" onchange="updateStaffList()">
+                                <option value="5">5</option><option value="10" selected>10</option><option value="20">20</option><option value="50">50</option>
+                            </select>
+                        </div>
+                        <div class="control-buttons"><button onclick="updateStaffList()">Refresh</button></div>
+                    </div>
+                </div>
+
+                <div class="sub-section">
+                    <h3>Department Management</h3>
+                    <div class="input-group"><label>Department:</label><input id="newDepartment"></div>
+                    <div class="control-buttons"><button onclick="addDepartment()">Add</button></div>
+                    <div id="departmentError" class="error"></div>
+                    <table id="departmentTable"><thead><tr><th data-sort="name" onclick="sortTable('departmentTable', 'name')">Department</th><th>Action</th></tr></thead><tbody id="departmentList"></tbody></table>
+                    <div class="table-footer">
+                        <div class="pagination">
+                            <button onclick="changeDepartmentPage(-1)">Prev</button>
+                            <span id="departmentPageInfo"></span>
+                            <button onclick="changeDepartmentPage(1)">Next</button>
+                            <select id="departmentRowsPerPage" onchange="updateDepartmentList()">
+                                <option value="5">5</option><option value="10" selected>10</option><option value="20">20</option><option value="50">50</option>
+                            </select>
+                        </div>
+                        <div class="control-buttons"><button onclick="updateDepartmentList()">Refresh</button></div>
+                    </div>
+                </div>
+
+                <div class="sub-section">
+                    <h3>Supplier Management</h3>
+                    <div class="input-group"><label>Supplier Name:</label><input id="newSupplier"></div>
+                    <div class="control-buttons"><button onclick="addSupplier()">Add</button></div>
+                    <div id="supplierError" class="error"></div>
+                    <table id="supplierTable"><thead><tr><th data-sort="name" onclick="sortTable('supplierTable', 'name')">Name</th><th data-sort="active" onclick="sortTable('supplierTable', 'active')">Active</th><th>Action</th></tr></thead><tbody id="supplierList"></tbody></table>
+                    <div class="table-footer">
+                        <div class="pagination">
+                            <button onclick="changeSupplierPage(-1)">Prev</button>
+                            <span id="supplierPageInfo"></span>
+                            <button onclick="changeSupplierPage(1)">Next</button>
+                            <select id="supplierRowsPerPage" onchange="updateSupplierList()">
+                                <option value="5">5</option><option value="10" selected>10</option><option value="20">20</option><option value="50">50</option>
+                            </select>
+                        </div>
+                        <div class="control-buttons"><button onclick="updateSupplierList()">Refresh</button></div>
+                    </div>
+                </div>
+
+                <div class="sub-section">
+                    <h3>Reason Management</h3>
+                    <div class="input-group"><label>Reason:</label><input id="newReason"></div>
+                    <div class="control-buttons"><button onclick="addReason()">Add</button></div>
+                    <div id="reasonError" class="error"></div>
+                    <table id="reasonTable"><thead><tr><th data-sort="reason" onclick="sortTable('reasonTable', 'reason')">Reason</th><th data-sort="active" onclick="sortTable('reasonTable', 'active')">Active</th><th>Action</th></tr></thead><tbody id="reasonList"></tbody></table>
+                    <div class="table-footer">
+                        <div class="pagination">
+                            <button onclick="changeReasonPage(-1)">Prev</button>
+                            <span id="reasonPageInfo"></span>
+                            <button onclick="changeReasonPage(1)">Next</button>
+                            <select id="reasonRowsPerPage" onchange="updateReasonList()">
+                                <option value="5">5</option><option value="10" selected>10</option><option value="20">20</option><option value="50">50</option>
+                            </select>
+                        </div>
+                        <div class="control-buttons"><button onclick="updateReasonList()">Refresh</button></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section compact-container">
+            <div class="compact-section" id="goodsInSection">
+                <h2 onclick="toggleSection('goodsInContent')">Goods IN</h2>
+                <div id="goodsInContent" class="toggle-section">
+                    <div class="input-group"><label>Reference:</label><input id="addReference" readonly></div>
+                    <div class="input-group"><label>Location:</label><select id="addLocation"></select></div>
+                    <div class="input-group"><label>Category:</label><select id="addCategory" onchange="updateAddSubCategories()"></select></div>
+                    <div class="input-group"><label>Sub-Category:</label><select id="addSubCategory"></select></div>
+                    <div class="input-group"><label>Product Name:</label><input id="addProductName" list="productNamesData" oninput="suggestBarcode('add')"></div>
+                    <div class="input-group"><label>Barcode:</label><input id="addBarcode"></div>
+                    <div class="input-group"><label>Quantity:</label><input type="number" id="addQuantity" min="0"></div>
+                    <div class="input-group"><label>Expiry Date:</label><input type="date" id="addExpiryDate"></div>
+                    <div class="input-group"><label>Received By:</label><input id="addReceivedBy" list="staffListData"></div>
+                    <div class="input-group"><label>Delivered By:</label><input id="addDeliveredBy" list="supplierListData"></div>
+                    <div class="input-group"><label>Supplier Ref:</label><input id="addSupplierRef"></div>
+                    <div class="input-group"><label>Note:</label><input id="addNote"></div>
+                    <div class="control-buttons"><button onclick="addGoods()">Add</button><button onclick="resetReceipt('add')">New Receipt</button></div>
+                    <div id="addSpinner" class="spinner"></div>
+                    <div id="addError" class="error"></div>
+                    <div id="addSuccess" class="success"></div>
+                </div>
+            </div>
+            <div class="compact-section" id="goodsOutSection">
+                <h2 onclick="toggleSection('goodsOutContent')">Goods OUT</h2>
+                <div id="goodsOutContent" class="toggle-section">
+                    <div class="input-group"><label>Reference:</label><input id="removeReference" readonly></div>
+                    <div class="input-group"><label>Location:</label><select id="removeLocation"></select></div>
+                    <div class="input-group"><label>Category:</label><select id="removeCategory" onchange="updateRemoveSubCategories()"></select></div>
+                    <div class="input-group"><label>Sub-Category:</label><select id="removeSubCategory"></select></div>
+                    <div class="input-group"><label>Product Name:</label><input id="removeProductName" list="productNamesData" oninput="suggestBarcode('remove')"></div>
+                    <div class="input-group"><label>Barcode:</label><input id="removeBarcode"></div>
+                    <div class="input-group"><label>Quantity:</label><input type="number" id="removeQuantity" min="0"></div>
+                    <div class="input-group"><label>Expiry Date:</label><input type="date" id="removeExpiryDate"></div>
+                    <div class="input-group"><label>Reason:</label><select id="removeReason"></select></div>
+                    <div class="input-group"><label>Issued To:</label><input id="removeIssuedTo" list="staffListData"></div>
+                    <div class="input-group"><label>Return To:</label><input id="removeReturnTo" list="supplierListData"></div>
+                    <div class="input-group"><label>Supplier Ref:</label><input id="removeSupplierRef"></div>
+                    <div class="input-group"><label>Note:</label><input id="removeNote"></div>
+                    <div class="control-buttons"><button onclick="removeGoods()">Remove</button><button onclick="resetReceipt('remove')">New Receipt</button></div>
+                    <div id="removeSpinner" class="spinner"></div>
+                    <div id="removeError" class="error"></div>
+                    <div id="removeSuccess" class="success"></div>
+                </div>
+            </div>
+            <div class="compact-section" id="transferGoodsSection">
+                <h2 onclick="toggleSection('transferGoodsContent')">Transfer Goods</h2>
+                <div id="transferGoodsContent" class="toggle-section">
+                    <div class="input-group"><label>Reference:</label><input id="transferReference" readonly></div>
+                    <div class="input-group"><label>From Location:</label><select id="transferFromLocation"></select></div>
+                    <div class="input-group"><label>To Location:</label><select id="transferToLocation"></select></div>
+                    <div class="input-group"><label>Category:</label><select id="transferCategory" onchange="updateTransferSubCategories()"></select></div>
+                    <div class="input-group"><label>Sub-Category:</label><select id="transferSubCategory"></select></div>
+                    <div class="input-group"><label>Product Name:</label><input id="transferProductName" list="productNamesData" oninput="suggestBarcode('transfer')"></div>
+                    <div class="input-group"><label>Barcode:</label><input id="transferBarcode"></div>
+                    <div class="input-group"><label>Quantity:</label><input type="number" id="transferQuantity" min="0"></div>
+                    <div class="input-group"><label>Expiry Date:</label><input type="date" id="transferExpiryDate"></div>
+                    <div class="input-group"><label>Transferred By:</label><input id="transferTransferredBy" list="staffListData"></div>
+                    <div class="input-group"><label>Note:</label><input id="transferNote"></div>
+                    <div class="control-buttons"><button onclick="transferGoods()">Transfer</button><button onclick="resetReceipt('transfer')">New Receipt</button></div>
+                    <div id="transferSpinner" class="spinner"></div>
+                    <div id="transferError" class="error"></div>
+                    <div id="transferSuccess" class="success"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section full-width" id="receiptsSection">
+            <h2 onclick="toggleSection('receiptsListContent')">Receipts List</h2>
+            <div id="receiptsListContent" class="toggle-section">
+                <div class="input-group"><label>Filter:</label><input id="receiptsGeneralFilter" onkeyup="updateReceiptsTable()"></div>
+                <div class="input-group"><label>Filter by Ref:</label><input id="receiptsFilter" onkeyup="updateReceiptsTable()"></div>
+                <div class="input-group"><label>Filter by Reason:</label><input id="receiptsReasonFilter" onkeyup="updateReceiptsTable()"></div>
+                <div class="input-group"><label>Filter by Note:</label><input id="receiptsNoteFilter" onkeyup="updateReceiptsTable()"></div>
+                <div class="input-group"><label>Date From:</label><input type="date" id="receiptsDateFrom" onchange="updateReceiptsTable()"></div>
+                <div class="input-group"><label>Date To:</label><input type="date" id="receiptsDateTo" onchange="updateReceiptsTable()"></div>
+                <div class="quick-filters">
+                    <button onclick="quickFilterReceipts('today')">Today</button>
+                    <button onclick="quickFilterReceipts('week')">This Week</button>
+                </div>
+                <div class="control-buttons">
+                    <button onclick="exportGoodsInReport()">Export Goods In</button>
+                    <button onclick="exportGoodsOutReport()">Export Goods Out</button>
+                    <button onclick="exportGoodsTransferReport()">Export Transfers</button>
+                    <button onclick="exportFilteredReceipts()">Export Filtered</button>
+                </div>
+                <table id="receiptsTable">
+                    <thead>
+                        <tr>
+                            <th data-sort="refNumber" onclick="sortTable('receiptsTable', 'refNumber')">Ref</th>
+                            <th data-sort="type" onclick="sortTable('receiptsTable', 'type')">Type</th>
+                            <th data-sort="date" onclick="sortTable('receiptsTable', 'date')">Date</th>
+                            <th data-sort="location" onclick="sortTable('receiptsTable', 'location')">Loc</th>
+                            <th data-sort="category" onclick="sortTable('receiptsTable', 'category')">Cat</th>
+                            <th data-sort="subCategory" onclick="sortTable('receiptsTable', 'subCategory')">Sub-Cat</th>
+                            <th data-sort="productName" onclick="sortTable('receiptsTable', 'productName')">Name</th>
+                            <th data-sort="quantity" onclick="sortTable('receiptsTable', 'quantity')">Qty</th>
+                            <th data-sort="expiryDate" onclick="sortTable('receiptsTable', 'expiryDate')">Exp</th>
+                            <th data-sort="staff" onclick="sortTable('receiptsTable', 'staff')">Staff</th>
+                            <th data-sort="department" onclick="sortTable('receiptsTable', 'department')">Dept</th>
+                            <th data-sort="delByRetTo" onclick="sortTable('receiptsTable', 'delByRetTo')">Del By/Ret To</th>
+                            <th data-sort="barcode" onclick="sortTable('receiptsTable', 'barcode')">Barcode</th>
+                            <th data-sort="supplierRef" onclick="sortTable('receiptsTable', 'supplierRef')">Sup Ref</th>
+                            <th data-sort="reason" onclick="sortTable('receiptsTable', 'reason')">Reason</th>
+                            <th data-sort="note" onclick="sortTable('receiptsTable', 'note')">Note</th>
+                        </tr>
+                    </thead>
+                    <tbody id="receiptsBody"></tbody>
+                </table>
+                <div class="table-footer">
+                    <div class="pagination">
+                        <button onclick="changeReceiptsPage(-1)">Prev</button>
+                        <span id="receiptsPageInfo"></span>
+                        <button onclick="changeReceiptsPage(1)">Next</button>
+                        <select id="receiptsRowsPerPage" onchange="updateReceiptsTable()">
+                            <option value="5">5</option><option value="10" selected>10</option><option value="20">20</option><option value="50">50</option>
+                        </select>
+                    </div>
+                    <div class="control-buttons"><button onclick="updateReceiptsTable()">Refresh</button></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section full-width" id="statusSection">
+            <h2>Warehouse Status</h2>
+            <div id="statusContent">
+                <div class="input-group"><label>Filter:</label><input id="statusFilter" onkeyup="updateStatusTable()"></div>
+                <div class="quick-filters">
+                    <button onclick="quickFilterStatus('expired')">Expired</button>
+                    <button onclick="quickFilterStatus('low')">Low Stock</button>
+                </div>
+                <table id="statusTable">
+                    <thead>
+                        <tr>
+                            <th data-sort="loc" onclick="sortTable('statusTable', 'loc')">Loc</th>
+                            <th data-sort="cat" onclick="sortTable('statusTable', 'cat')">Cat</th>
+                            <th data-sort="subCat" onclick="sortTable('statusTable', 'subCat')">Sub-Cat</th>
+                            <th data-sort="productName" onclick="sortTable('statusTable', 'productName')">Name</th>
+                            <th data-sort="quantity" onclick="sortTable('statusTable', 'quantity')">Qty</th>
+                            <th data-sort="expiryDate" onclick="sortTable('statusTable', 'expiryDate')">Exp</th>
+                            <th data-sort="barcode" onclick="sortTable('statusTable', 'barcode')">Barcode</th>
+                        </tr>
+                    </thead>
+                    <tbody id="statusBody"></tbody>
+                </table>
+                <div class="table-footer">
+                    <div class="pagination">
+                        <button onclick="changePage(-1)">Prev</button>
+                        <span id="pageInfo"></span>
+                        <button onclick="changePage(1)">Next</button>
+                        <select id="rowsPerPage" onchange="updateStatusTable()">
+                            <option value="5">5</option><option value="10" selected>10</option><option value="20">20</option><option value="50">50</option>
+                        </select>
+                    </div>
+                    <div class="control-buttons">
+                        <button onclick="updateStatusTable()">Refresh</button>
+                        <button onclick="exportStatusTable()">Export</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section full-width" id="searchGoodsSection">
+            <h2 onclick="toggleSection('searchGoodsContent')">Search Goods</h2>
+            <div id="searchGoodsContent" class="toggle-section">
+                <div class="input-group"><label>Type:</label><select id="searchType" onchange="toggleSearchFields()">
+                    <option value="current">Current</option><option value="removed">Removed</option><option value="received">Received</option><option value="transferred">Transferred</option></select></div>
+                <div class="input-group"><label>Category:</label><select id="searchCategory" onchange="updateSearchSubCategories()"></select></div>
+                <div class="input-group"><label>Sub-Cat:</label><select id="searchSubCategory"></select></div>
+                <div class="input-group"><label>Min Qty:</label><input type="number" id="searchQuantity" min="0" value="0"></div>
+                <div class="input-group"><label>Name:</label><input id="searchProductName" list="productNamesData" oninput="suggestBarcode('search')"></div>
+                <div class="input-group"><label>Barcode:</label><input id="searchBarcode"></div>
+                <div class="input-group"><label>Del By:</label><input id="searchDeliveredBy" list="supplierListData"></div>
+                <div class="input-group"><label>Department:</label><select id="searchDepartmentFilter" onchange="updateSearchStaffOptions()"></select></div>
+                <div class="input-group"><label>Staff Name:</label><select id="searchStaffNameFilter"></select></div>
+                <div class="input-group"><label>Exp From:</label><input type="date" id="searchExpiryFrom"></div>
+                <div class="input-group"><label>Exp To:</label><input type="date" id="searchExpiryTo"></div>
+                <div class="input-group" id="searchRemoveDateFromGroup" style="display:none"><label>Remove From:</label><input type="date" id="searchRemoveDateFrom"></div>
+                <div class="input-group" id="searchRemoveDateToGroup" style="display:none"><label>Remove To:</label><input type="date" id="searchRemoveDateTo"></div>
+                <div class="input-group" id="searchReceiveDateFromGroup" style="display:none"><label>Receive From:</label><input type="date" id="searchReceiveDateFrom"></div>
+                <div class="input-group" id="searchReceiveDateToGroup" style="display:none"><label>Receive To:</label><input type="date" id="searchReceiveDateTo"></div>
+                <div class="input-group" id="searchTransferDateFromGroup" style="display:none"><label>Transfer From:</label><input type="date" id="searchTransferDateFrom"></div>
+                <div class="input-group" id="searchTransferDateToGroup" style="display:none"><label>Transfer To:</label><input type="date" id="searchTransferDateTo"></div>
+                <div class="control-buttons"><button onclick="searchGoods()">Search</button><button onclick="exportSearchResults()">Export</button></div>
+                <div id="searchResults"></div>
+            </div>
+        </div>
+
+        <div class="section compact-container">
+            <div class="compact-section" id="controlsSection">
+                <h2 onclick="toggleSection('controlsContent')">Controls</h2>
+                <div id="controlsContent" class="toggle-section">
+                    <div class="control-buttons">
+                        <button id="undoButton" onclick="undoLastAction()" disabled>Undo</button>
+                        <button id="resetButton" onclick="confirmResetWarehouse()" disabled>Reset</button>
+                        <button id="exportButton" onclick="exportData()" disabled>Export Data</button>
+                        <input type="file" id="importFile" accept=".json" onchange="importData()" disabled>
+                    </div>
+                </div>
+            </div>
+            <div class="compact-section" id="auditSection">
+                <h2 onclick="toggleSection('auditContent')">Audit Trail</h2>
+                <div id="auditContent" class="toggle-section">
+                    <div class="control-buttons"><button onclick="exportAuditTrail()">Export</button></div>
+                    <table id="auditTable">
+                        <thead><tr><th data-sort="entry" onclick="sortTable('auditTable', 'entry')">Audit Entry</th></tr></thead>
+                        <tbody id="auditBody"></tbody>
+                    </table>
+                    <div class="table-footer">
+                        <div class="pagination">
+                            <button onclick="changeAuditPage(-1)">Prev</button>
+                            <span id="auditPageInfo"></span>
+                            <button onclick="changeAuditPage(1)">Next</button>
+                            <select id="auditRowsPerPage" onchange="updateAuditTrail()">
+                                <option value="5">5</option><option value="10" selected>10</option><option value="20">20</option><option value="50">50</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <datalist id="staffListData"></datalist>
+        <datalist id="supplierListData"></datalist>
+        <datalist id="productNamesData"></datalist>
+    </div>
+
+    <script>
+        const PREFIXES = { add: 'GIR', remove: 'GOR', transfer: 'TRF' };
+        const INITIAL_STATE = {
+            categories: { "General": ["Misc"] },
+            warehouse: { "TestLocation": {} },
+            users: {
+                "Manager": { password: "12345678", fullName: "Manager User", level: "Management" },
+                "Operator1": { password: "123456", fullName: "Operator One", level: "Operator" },
+                "Admin1": { password: "1234", fullName: "Admin One", level: "Admin" }
+            },
+            staff: [{ name: "TestStaff", department: "TestDept", active: true }],
+            departments: ["TestDept"],
+            suppliers: [{ name: "TestSupplier", active: true }],
+            reasons: [{ reason: "TestReason", active: true }],
+            history: [],
+            auditTrail: [],
+            currentInRef: null,
+            currentOutRef: null,
+            currentTransferRef: null,
+            barcodeMap: {}
+        };
+
+        let state = { ...INITIAL_STATE };
+        let currentUser = null, 
+            currentPage = 1, receiptsPage = 1, auditPage = 1, 
+            userPage = 1, locationPage = 1, categoryPage = 1, staffPage = 1, 
+            departmentPage = 1, supplierPage = 1, reasonPage = 1, 
+            rowsPerPage = 10, receiptsRowsPerPage = 10, auditRowsPerPage = 10, 
+            userRowsPerPage = 10, locationRowsPerPage = 10, categoryRowsPerPage = 10, 
+            staffRowsPerPage = 10, departmentRowsPerPage = 10, supplierRowsPerPage = 10, reasonRowsPerPage = 10;
+        const sortStates = {};
+
+        const els = {
+            authSection: document.getElementById('authSection'), mainContent: document.getElementById('mainContent'), currentUser: document.getElementById('currentUser'),
+            managementSection: document.getElementById('managementSection'),
+            newUserName: document.getElementById('newUserName'), newUserPassword: document.getElementById('newUserPassword'), newUserFullName: document.getElementById('newUserFullName'), newUserLevel: document.getElementById('newUserLevel'), userError: document.getElementById('userError'), userList: document.getElementById('userList'), userRowsPerPage: document.getElementById('userRowsPerPage'), userPageInfo: document.getElementById('userPageInfo'),
+            newLocation: document.getElementById('newLocation'), locationError: document.getElementById('locationError'), locationList: document.getElementById('locationList'), locationRowsPerPage: document.getElementById('locationRowsPerPage'), locationPageInfo: document.getElementById('locationPageInfo'),
+            newCategory: document.getElementById('newCategory'), newSubCategory: document.getElementById('newSubCategory'), categoryForSub: document.getElementById('categoryForSub'), categoryError: document.getElementById('categoryError'), categoryList: document.getElementById('categoryList'), categoryRowsPerPage: document.getElementById('categoryRowsPerPage'), categoryPageInfo: document.getElementById('categoryPageInfo'),
+            newStaff: document.getElementById('newStaff'), newStaffDepartment: document.getElementById('newStaffDepartment'), staffError: document.getElementById('staffError'), staffList: document.getElementById('staffList'), staffRowsPerPage: document.getElementById('staffRowsPerPage'), staffPageInfo: document.getElementById('staffPageInfo'),
+            newDepartment: document.getElementById('newDepartment'), departmentError: document.getElementById('departmentError'), departmentList: document.getElementById('departmentList'), departmentRowsPerPage: document.getElementById('departmentRowsPerPage'), departmentPageInfo: document.getElementById('departmentPageInfo'),
+            newSupplier: document.getElementById('newSupplier'), supplierError: document.getElementById('supplierError'), supplierList: document.getElementById('supplierList'), supplierRowsPerPage: document.getElementById('supplierRowsPerPage'), supplierPageInfo: document.getElementById('supplierPageInfo'),
+            newReason: document.getElementById('newReason'), reasonError: document.getElementById('reasonError'), reasonList: document.getElementById('reasonList'), reasonRowsPerPage: document.getElementById('reasonRowsPerPage'), reasonPageInfo: document.getElementById('reasonPageInfo'),
+            add: {reference: document.getElementById('addReference'), location: document.getElementById('addLocation'), category: document.getElementById('addCategory'), subCategory: document.getElementById('addSubCategory'), productName: document.getElementById('addProductName'), barcode: document.getElementById('addBarcode'), quantity: document.getElementById('addQuantity'), expiryDate: document.getElementById('addExpiryDate'), receivedBy: document.getElementById('addReceivedBy'), deliveredBy: document.getElementById('addDeliveredBy'), supplierRef: document.getElementById('addSupplierRef'), note: document.getElementById('addNote'), error: document.getElementById('addError'), success: document.getElementById('addSuccess'), spinner: document.getElementById('addSpinner')},
+            remove: {reference: document.getElementById('removeReference'), location: document.getElementById('removeLocation'), category: document.getElementById('removeCategory'), subCategory: document.getElementById('removeSubCategory'), productName: document.getElementById('removeProductName'), barcode: document.getElementById('removeBarcode'), quantity: document.getElementById('removeQuantity'), expiryDate: document.getElementById('removeExpiryDate'), reason: document.getElementById('removeReason'), issuedTo: document.getElementById('removeIssuedTo'), returnTo: document.getElementById('removeReturnTo'), supplierRef: document.getElementById('removeSupplierRef'), note: document.getElementById('removeNote'), error: document.getElementById('removeError'), success: document.getElementById('removeSuccess'), spinner: document.getElementById('removeSpinner')},
+            transfer: {reference: document.getElementById('transferReference'), fromLocation: document.getElementById('transferFromLocation'), toLocation: document.getElementById('transferToLocation'), category: document.getElementById('transferCategory'), subCategory: document.getElementById('transferSubCategory'), productName: document.getElementById('transferProductName'), barcode: document.getElementById('transferBarcode'), quantity: document.getElementById('transferQuantity'), expiryDate: document.getElementById('transferExpiryDate'), transferredBy: document.getElementById('transferTransferredBy'), note: document.getElementById('transferNote'), error: document.getElementById('transferError'), success: document.getElementById('transferSuccess'), spinner: document.getElementById('transferSpinner')},
+            statusFilter: document.getElementById('statusFilter'), statusBody: document.getElementById('statusBody'), rowsPerPage: document.getElementById('rowsPerPage'), pageInfo: document.getElementById('pageInfo'),
+            receiptsGeneralFilter: document.getElementById('receiptsGeneralFilter'), receiptsFilter: document.getElementById('receiptsFilter'), receiptsReasonFilter: document.getElementById('receiptsReasonFilter'), receiptsNoteFilter: document.getElementById('receiptsNoteFilter'), receiptsDateFrom: document.getElementById('receiptsDateFrom'), receiptsDateTo: document.getElementById('receiptsDateTo'), receiptsBody: document.getElementById('receiptsBody'), receiptsRowsPerPage: document.getElementById('receiptsRowsPerPage'), receiptsPageInfo: document.getElementById('receiptsPageInfo'),
+            search: {type: document.getElementById('searchType'), category: document.getElementById('searchCategory'), subCategory: document.getElementById('searchSubCategory'), quantity: document.getElementById('searchQuantity'), productName: document.getElementById('searchProductName'), barcode: document.getElementById('searchBarcode'), deliveredBy: document.getElementById('searchDeliveredBy'), departmentFilter: document.getElementById('searchDepartmentFilter'), staffNameFilter: document.getElementById('searchStaffNameFilter'), expiryFrom: document.getElementById('searchExpiryFrom'), expiryTo: document.getElementById('searchExpiryTo'), removeDateFrom: document.getElementById('searchRemoveDateFrom'), removeDateTo: document.getElementById('searchRemoveDateTo'), receiveDateFrom: document.getElementById('searchReceiveDateFrom'), receiveDateTo: document.getElementById('searchReceiveDateTo'), transferDateFrom: document.getElementById('searchTransferDateFrom'), transferDateTo: document.getElementById('searchTransferDateTo'), results: document.getElementById('searchResults')},
+            auditBody: document.getElementById('auditBody'), auditRowsPerPage: document.getElementById('auditRowsPerPage'), auditPageInfo: document.getElementById('auditPageInfo'),
+            controls: {undo: document.getElementById('undoButton'), reset: document.getElementById('resetButton'), export: document.getElementById('exportButton'), import: document.getElementById('importFile')},
+            staffListData: document.getElementById('staffListData'), supplierListData: document.getElementById('supplierListData'), productNamesData: document.getElementById('productNamesData')
+        };
+
+        function openDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('WarehouseDB', 1);
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    db.createObjectStore('state', { keyPath: 'key' });
+                };
+                request.onsuccess = (event) => resolve(event.target.result);
+                request.onerror = (event) => reject(event.target.error);
+            });
+        }
+
+        async function getState(key) {
+            const db = await openDB();
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['state'], 'readonly');
+                const store = transaction.objectStore('state');
+                const request = store.get(key);
+                request.onsuccess = () => resolve(request.result ? request.result.value : INITIAL_STATE[key]);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function saveState(key, value) {
+            const db = await openDB();
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['state'], 'readwrite');
+                const store = transaction.objectStore('state');
+                const request = store.put({ key, value });
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function loadFullState() {
+            const keys = Object.keys(INITIAL_STATE);
+            for (const key of keys) {
+                try {
+                    state[key] = await getState(key);
+                } catch (e) {
+                    console.error(`Failed to load ${key} from IndexedDB:`, e);
+                    state[key] = INITIAL_STATE[key];
+                }
+            }
+        }
+
+        async function saveFullState() {
+            const keys = Object.keys(state);
+            for (const key of keys) {
+                await saveState(key, state[key]);
+            }
+        }
+
+        const showMsg = (el, msg, isError) => { 
+            el.textContent = msg; 
+            el.style.display = 'block'; 
+            setTimeout(() => el.style.display = 'none', 3000); 
+            el.className = isError ? 'error' : 'success'; 
+        };
+        const updateSelect = (select, options) => select.innerHTML = options.map(o => `<option value="${o}">${o}</option>`).join('');
+        const updateDatalist = (list, data) => list.innerHTML = data.map(d => `<option value="${d}">`).join('');
+
+        function nextRef(type) {
+            const prefix = PREFIXES[type];
+            let newRef;
+            do {
+                const randomNum = Math.floor(100000 + Math.random() * 900000);
+                newRef = `${prefix}${randomNum}`;
+            } while (state.history.some(h => h.refNumber === newRef));
+            return newRef;
+        }
+
+        function sortTable(tableId, column) {
+            const tableState = sortStates[tableId] = sortStates[tableId] || {};
+            if (tableState.column === column) tableState.direction = tableState.direction === 'asc' ? 'desc' : 'asc';
+            else { tableState.column = column; tableState.direction = 'asc'; }
+            const updateFn = {
+                statusTable: updateStatusTable,
+                receiptsTable: updateReceiptsTable,
+                auditTable: updateAuditTrail,
+                userTable: updateUserList,
+                locationTable: updateLocationList,
+                categoryTable: updateCategoryList,
+                staffTable: updateStaffList,
+                departmentTable: updateDepartmentList,
+                supplierTable: updateSupplierList,
+                reasonTable: updateReasonList,
+                searchResultsTable: searchGoods
+            }[tableId];
+            if (updateFn) updateFn();
+        }
+
+        function applySortIndicators(tableId) {
+            const { column, direction } = sortStates[tableId] || {};
+            document.querySelectorAll(`#${tableId} th`).forEach(th => {
+                th.classList.remove('sort-asc', 'sort-desc');
+                if (th.dataset.sort === column) th.classList.add(direction === 'asc' ? 'sort-asc' : 'sort-desc');
+            });
+        }
+
+        function restrictByLevel(action) {
+            const level = state.users[currentUser]?.level;
+            if (!level) return true; // No user logged in, restrict all actions
+            if (level === 'Management') return false; // Full access
+            if (level === 'Operator') {
+                return ['managementAccess', 'resetWarehouse'].includes(action); // Restrict management and reset
+            }
+            if (level === 'Admin') {
+                return !['exportData', 'importData', 'exportTable'].includes(action); // Only allow export/import
+            }
+            return true; // Default: restrict all
+        }
+
+        async function authenticateUser() {
+            const username = document.getElementById('usernameInput').value.trim();
+            const pwd = document.getElementById('passwordInput').value;
+            await loadFullState();
+            if (state.users[username] && state.users[username].password === pwd) {
+                currentUser = username;
+                els.authSection.style.display = 'none';
+                els.mainContent.style.display = 'block';
+                els.currentUser.textContent = state.users[username].fullName;
+
+                const userLevel = state.users[currentUser].level;
+                els.managementSection.style.display = userLevel === 'Management' ? 'block' : 'none';
+
+                // Set control button states based on user level
+                els.controls.undo.disabled = restrictByLevel('undo');
+                els.controls.reset.disabled = restrictByLevel('resetWarehouse');
+                els.controls.export.disabled = restrictByLevel('exportData');
+                els.controls.import.disabled = restrictByLevel('importData');
+
+                // Enable/disable Goods IN/OUT/Transfer buttons
+                document.querySelectorAll('#goodsInSection button, #goodsOutSection button, #transferGoodsSection button')
+                    .forEach(btn => btn.disabled = restrictByLevel('goodsAction'));
+
+                // Enable all export buttons (tables/lists) for Operator/Admin
+                document.querySelectorAll('#receiptsSection button, #statusSection button, #searchGoodsSection button, #auditSection button')
+                    .forEach(btn => btn.disabled = restrictByLevel('goodsAction') && btn.textContent !== 'Export');
+
+                await auditLog(`Logged in as ${username}`);
+                await updateAll();
+                resetReceipt('add');
+                resetReceipt('remove');
+                resetReceipt('transfer');
+            } else {
+                showMsg(document.getElementById('authError'), "Invalid credentials!", true);
+            }
+        }
+
+        async function logout() {
+            await auditLog('Logged out');
+            currentUser = null;
+            els.authSection.style.display = 'block';
+            els.mainContent.style.display = 'none';
+            document.getElementById('usernameInput').value = '';
+            document.getElementById('passwordInput').value = '';
+        }
+
+        function toggleSection(id) { document.getElementById(id).classList.toggle('active'); }
+        function toggleAllSections() { document.querySelectorAll('.toggle-section').forEach(s => s.classList.toggle('active')); }
+        async function updateAll() { 
+            await Promise.all([
+                updateCategories(), 
+                updateStaffAndDepartments(), 
+                updateSuppliers(), 
+                updateReasons(), 
+                updateUserList(), 
+                updateLocationList(), 
+                updateCategoryList(), 
+                updateDepartmentList(), 
+                updateStatusTable(), 
+                updateReceiptsTable(), 
+                updateAuditTrail(), 
+                updateProductNames()
+            ]);
+        }
+
+        function updateCategories() {
+            const cats = ['All', ...Object.keys(state.categories)], locs = Object.keys(state.warehouse);
+            [els.add.category, els.remove.category, els.transfer.category].forEach(s => updateSelect(s, Object.keys(state.categories)));
+            els.search.category.innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+            [els.add.location, els.remove.location, els.transfer.fromLocation, els.transfer.toLocation].forEach(s => updateSelect(s, locs));
+            updateSelect(els.categoryForSub, [''].concat(Object.keys(state.categories)));
+            updateAddSubCategories(); updateRemoveSubCategories(); updateTransferSubCategories(); updateSearchSubCategories();
+        }
+
+        function updateAddSubCategories() { updateSelect(els.add.subCategory, state.categories[els.add.category.value] || []); }
+        function updateRemoveSubCategories() { updateSelect(els.remove.subCategory, state.categories[els.remove.category.value] || []); }
+        function updateTransferSubCategories() { updateSelect(els.transfer.subCategory, state.categories[els.transfer.category.value] || []); }
+        function updateSearchSubCategories() { 
+            const cat = els.search.category.value;
+            const subCats = cat === 'All' ? ['All'] : ['All', ...(state.categories[cat] || [])];
+            updateSelect(els.search.subCategory, subCats);
+        }
+
+        function updateStaffAndDepartments() {
+            const activeStaff = state.staff.filter(s => s.active).map(s => s.name);
+            updateDatalist(els.staffListData, activeStaff);
+            updateSelect(els.newStaffDepartment, state.departments);
+            updateSelect(els.search.departmentFilter, ['All', ...state.departments]);
+            updateSearchStaffOptions();
+            updateStaffList();
+            updateDepartmentList();
+        }
+
+        function updateSearchStaffOptions() {
+            const dept = els.search.departmentFilter.value;
+            const staffOptions = dept === 'All' ? ['All', ...state.staff.filter(s => s.active).map(s => s.name)] : ['All', ...state.staff.filter(s => s.department === dept && s.active).map(s => s.name)];
+            updateSelect(els.search.staffNameFilter, staffOptions);
+        }
+
+        function updateSuppliers() { 
+            const activeSuppliers = state.suppliers.filter(s => s.active).map(s => s.name);
+            updateDatalist(els.supplierListData, activeSuppliers); 
+            updateSupplierList(); 
+        }
+
+        function updateReasons() { 
+            updateSelect(els.remove.reason, state.reasons.filter(r => r.active).map(r => r.reason)); 
+            updateReasonList(); 
+        }
+
+        async function addUser() {
+            if (restrictByLevel('managementAccess')) return;
+            const username = els.newUserName.value.trim(), pwd = els.newUserPassword.value, fullName = els.newUserFullName.value.trim(), level = els.newUserLevel.value;
+            if (!username || !pwd || !fullName || state.users[username]) return showMsg(els.userError, "All fields required, username must be unique!", true);
+            state.users[username] = { password: pwd, fullName, level };
+            els.newUserName.value = els.newUserPassword.value = els.newUserFullName.value = '';
+            await auditLog(`Added user ${username}`);
+            await saveFullState();
+            await updateUserList();
+        }
+
+        async function removeUser(username) {
+            if (restrictByLevel('managementAccess') || username === currentUser) return;
+            delete state.users[username];
+            await auditLog(`Removed user ${username}`);
+            await saveFullState();
+            await updateUserList();
+        }
+
+        async function changePassword(username) {
+            if (restrictByLevel('managementAccess')) return;
+            const newPwd = prompt(`Enter new password for ${username}:`);
+            if (newPwd && newPwd.trim()) {
+                state.users[username].password = newPwd.trim();
+                await auditLog(`Changed password for ${username}`);
+                await saveFullState();
+                await updateUserList();
+            }
+        }
+
+        async function editPermissions(username) {
+            if (restrictByLevel('managementAccess') || username === currentUser) return;
+            const newLevel = prompt(`Enter new permission level for ${username} (Operator/Management/Admin):`, state.users[username].level);
+            if (newLevel && ['Operator', 'Management', 'Admin'].includes(newLevel)) {
+                state.users[username].level = newLevel;
+                await auditLog(`Edited permissions for ${username} to ${newLevel}`);
+                await saveFullState();
+                await updateUserList();
+            }
+        }
+
+        async function updateUserList() {
+            if (restrictByLevel('managementAccess')) return;
+            const users = Object.entries(state.users).map(([u, { fullName, level }]) => ({ username: u, fullName, level }));
+            sortList(users, 'userTable');
+            userRowsPerPage = parseInt(els.userRowsPerPage.value);
+            const totalPages = Math.ceil(users.length / userRowsPerPage);
+            userPage = Math.max(1, Math.min(userPage, totalPages));
+            const start = (userPage - 1) * userRowsPerPage, end = start + userRowsPerPage;
+            els.userList.innerHTML = users.slice(start, end).map(u => `<tr><td>${u.username}</td><td>${u.fullName}</td><td>${u.level}</td><td><button onclick="removeUser('${u.username}')">Remove</button><button onclick="changePassword('${u.username}')">Change Password</button><button onclick="editPermissions('${u.username}')">Edit Permissions</button></td></tr>`).join('');
+            els.userPageInfo.textContent = `Page ${userPage} of ${totalPages} (${users.length} items)`;
+            applySortIndicators('userTable');
+        }
+
+        function changeUserPage(delta) { userPage += delta; updateUserList(); }
+
+        async function addLocation() {
+            if (restrictByLevel('managementAccess')) return;
+            const loc = els.newLocation.value.trim();
+            if (!loc || state.warehouse[loc]) return showMsg(els.locationError, "Location must be unique and non-empty!", true);
+            state.warehouse[loc] = {};
+            els.newLocation.value = '';
+            await auditLog(`Added location ${loc}`);
+            await saveFullState();
+            updateCategories();
+            await updateLocationList();
+        }
+
+        async function removeLocation(loc) {
+            if (restrictByLevel('managementAccess') || Object.keys(state.warehouse[loc]).length) return showMsg(els.locationError, "Cannot remove location with items!", true);
+            delete state.warehouse[loc];
+            await auditLog(`Removed location ${loc}`);
+            await saveFullState();
+            updateCategories();
+            await updateLocationList();
+        }
+
+        async function updateLocationList() {
+            if (restrictByLevel('managementAccess')) return;
+            const locations = Object.keys(state.warehouse).map(l => ({ location: l }));
+            sortList(locations, 'locationTable');
+            locationRowsPerPage = parseInt(els.locationRowsPerPage.value);
+            const totalPages = Math.ceil(locations.length / locationRowsPerPage);
+            locationPage = Math.max(1, Math.min(locationPage, totalPages));
+            const start = (locationPage - 1) * locationRowsPerPage, end = start + locationRowsPerPage;
+            els.locationList.innerHTML = locations.slice(start, end).map(l => `<tr><td>${l.location}</td><td><button onclick="removeLocation('${l.location}')">Remove</button></td></tr>`).join('');
+            els.locationPageInfo.textContent = `Page ${locationPage} of ${totalPages} (${locations.length} items)`;
+            applySortIndicators('locationTable');
+        }
+
+        function changeLocationPage(delta) { locationPage += delta; updateLocationList(); }
+
+        async function addCategory() {
+            if (restrictByLevel('managementAccess')) return;
+            const cat = els.newCategory.value.trim();
+            if (!cat || state.categories[cat]) return showMsg(els.categoryError, "Category must be unique and non-empty!", true);
+            state.categories[cat] = [];
+            els.newCategory.value = '';
+            await auditLog(`Added category ${cat}`);
+            await saveFullState();
+            updateCategories();
+            await updateCategoryList();
+        }
+
+        async function addSubCategory() {
+            if (restrictByLevel('managementAccess')) return;
+            const subCat = els.newSubCategory.value.trim(), cat = els.categoryForSub.value;
+            if (!subCat || !cat || state.categories[cat].includes(subCat)) return showMsg(els.categoryError, "Sub-category must be unique within category!", true);
+            state.categories[cat].push(subCat);
+            els.newSubCategory.value = '';
+            await auditLog(`Added sub-category ${subCat} to ${cat}`);
+            await saveFullState();
+            updateCategories();
+            await updateCategoryList();
+        }
+
+        async function removeCategory(cat) {
+            if (restrictByLevel('managementAccess') || Object.values(state.warehouse).some(loc => loc[cat])) return showMsg(els.categoryError, "Cannot remove category with items!", true);
+            delete state.categories[cat];
+            await auditLog(`Removed category ${cat}`);
+            await saveFullState();
+            updateCategories();
+            await updateCategoryList();
+        }
+
+        async function removeSubCategory(cat, subCat) {
+            if (restrictByLevel('managementAccess') || Object.values(state.warehouse).some(loc => loc[cat]?.[subCat]?.length)) return showMsg(els.categoryError, "Cannot remove sub-category with items!", true);
+            state.categories[cat] = state.categories[cat].filter(s => s !== subCat);
+            await auditLog(`Removed sub-category ${subCat} from ${cat}`);
+            await saveFullState();
+            updateCategories();
+            await updateCategoryList();
+        }
+
+        async function updateCategoryList() {
+            if (restrictByLevel('managementAccess')) return;
+            const categories = Object.entries(state.categories).map(([cat, subCats]) => ({ category: cat, subCategories: subCats.join(', ') || 'None' }));
+            sortList(categories, 'categoryTable');
+            categoryRowsPerPage = parseInt(els.categoryRowsPerPage.value);
+            const totalPages = Math.ceil(categories.length / categoryRowsPerPage);
+            categoryPage = Math.max(1, Math.min(categoryPage, totalPages));
+            const start = (categoryPage - 1) * categoryRowsPerPage, end = start + categoryRowsPerPage;
+            els.categoryList.innerHTML = categories.slice(start, end).map(c => `<tr><td>${c.category}</td><td>${c.subCategories}</td><td><button onclick="removeCategory('${c.category}')">Remove Category</button>${state.categories[c.category].map(s => `<button onclick="removeSubCategory('${c.category}', '${s}')">Remove ${s}</button>`).join('')}</td></tr>`).join('');
+            els.categoryPageInfo.textContent = `Page ${categoryPage} of ${totalPages} (${categories.length} items)`;
+            applySortIndicators('categoryTable');
+        }
+
+        function changeCategoryPage(delta) { categoryPage += delta; updateCategoryList(); }
+
+        async function addStaff() {
+            if (restrictByLevel('managementAccess')) return;
+            const name = els.newStaff.value.trim(), dept = els.newStaffDepartment.value;
+            if (!name || state.staff.some(s => s.name === name)) return showMsg(els.staffError, "Staff name must be unique and non-empty!", true);
+            state.staff.push({ name, department: dept, active: true });
+            els.newStaff.value = '';
+            await auditLog(`Added staff ${name} to ${dept}`);
+            await saveFullState();
+            updateStaffAndDepartments();
+        }
+
+        async function removeStaff(name) {
+            if (restrictByLevel('managementAccess')) return;
+            state.staff = state.staff.filter(s => s.name !== name);
+            await auditLog(`Removed staff ${name}`);
+            await saveFullState();
+            updateStaffAndDepartments();
+        }
+
+        async function toggleStaffActive(name) {
+            if (restrictByLevel('managementAccess')) return;
+            const s = state.staff.find(s => s.name === name);
+            s.active = !s.active;
+            await auditLog(`${s.active ? 'Activated' : 'Deactivated'} staff ${name}`);
+            await saveFullState();
+            updateStaffAndDepartments();
+        }
+
+        async function updateStaffList() {
+            if (restrictByLevel('managementAccess')) return;
+            const staff = state.staff.map(s => ({ name: s.name, department: s.department, active: s.active ? 'Yes' : 'No' }));
+            sortList(staff, 'staffTable');
+            staffRowsPerPage = parseInt(els.staffRowsPerPage.value);
+            const totalPages = Math.ceil(staff.length / staffRowsPerPage);
+            staffPage = Math.max(1, Math.min(staffPage, totalPages));
+            const start = (staffPage - 1) * staffRowsPerPage, end = start + staffRowsPerPage;
+            els.staffList.innerHTML = staff.slice(start, end).map(s => `<tr><td>${s.name}</td><td>${s.department}</td><td>${s.active}</td><td><button onclick="removeStaff('${s.name}')">Remove</button><button onclick="toggleStaffActive('${s.name}')">${s.active === 'Yes' ? 'Deactivate' : 'Activate'}</button></td></tr>`).join('');
+            els.staffPageInfo.textContent = `Page ${staffPage} of ${totalPages} (${staff.length} items)`;
+            applySortIndicators('staffTable');
+        }
+
+        function changeStaffPage(delta) { staffPage += delta; updateStaffList(); }
+
+        async function addDepartment() {
+            if (restrictByLevel('managementAccess')) return;
+            const dept = els.newDepartment.value.trim();
+            if (!dept || state.departments.includes(dept)) return showMsg(els.departmentError, "Department must be unique and non-empty!", true);
+            state.departments.push(dept);
+            els.newDepartment.value = '';
+            await auditLog(`Added department ${dept}`);
+            await saveFullState();
+            updateStaffAndDepartments();
+        }
+
+        async function removeDepartment(dept) {
+            if (restrictByLevel('managementAccess') || state.staff.some(s => s.department === dept)) return showMsg(els.departmentError, "Cannot remove department with staff!", true);
+            state.departments = state.departments.filter(d => d !== dept);
+            await auditLog(`Removed department ${dept}`);
+            await saveFullState();
+            updateStaffAndDepartments();
+        }
+
+        async function updateDepartmentList() {
+            if (restrictByLevel('managementAccess')) return;
+            const departments = state.departments.map(d => ({ name: d }));
+            sortList(departments, 'departmentTable');
+            departmentRowsPerPage = parseInt(els.departmentRowsPerPage.value);
+            const totalPages = Math.ceil(departments.length / departmentRowsPerPage);
+            departmentPage = Math.max(1, Math.min(departmentPage, totalPages));
+            const start = (departmentPage - 1) * departmentRowsPerPage, end = start + departmentRowsPerPage;
+            els.departmentList.innerHTML = departments.slice(start, end).map(d => `<tr><td>${d.name}</td><td><button onclick="removeDepartment('${d.name}')">Remove</button></td></tr>`).join('');
+            els.departmentPageInfo.textContent = `Page ${departmentPage} of ${totalPages} (${departments.length} items)`;
+            applySortIndicators('departmentTable');
+        }
+
+        function changeDepartmentPage(delta) { departmentPage += delta; updateDepartmentList(); }
+
+        async function addSupplier() {
+            if (restrictByLevel('managementAccess')) return;
+            const sup = els.newSupplier.value.trim();
+            if (!sup || state.suppliers.some(s => s.name === sup)) return showMsg(els.supplierError, "Supplier name must be unique and non-empty!", true);
+            state.suppliers.push({ name: sup, active: true });
+            els.newSupplier.value = '';
+            await auditLog(`Added supplier ${sup}`);
+            await saveFullState();
+            updateSuppliers();
+        }
+
+        async function removeSupplier(sup) {
+            if (restrictByLevel('managementAccess')) return;
+            state.suppliers = state.suppliers.filter(s => s.name !== sup);
+            await auditLog(`Removed supplier ${sup}`);
+            await saveFullState();
+            updateSuppliers();
+        }
+
+        async function toggleSupplierActive(sup) {
+            if (restrictByLevel('managementAccess')) return;
+            const s = state.suppliers.find(s => s.name === sup);
+            s.active = !s.active;
+            await auditLog(`${s.active ? 'Activated' : 'Deactivated'} supplier ${sup}`);
+            await saveFullState();
+            updateSuppliers();
+        }
+
+        async function updateSupplierList() {
+            if (restrictByLevel('managementAccess')) return;
+            const suppliers = state.suppliers.map(s => ({ name: s.name, active: s.active ? 'Yes' : 'No' }));
+            sortList(suppliers, 'supplierTable');
+            supplierRowsPerPage = parseInt(els.supplierRowsPerPage.value);
+            const totalPages = Math.ceil(suppliers.length / supplierRowsPerPage);
+            supplierPage = Math.max(1, Math.min(supplierPage, totalPages));
+            const start = (supplierPage - 1) * supplierRowsPerPage, end = start + supplierRowsPerPage;
+            els.supplierList.innerHTML = suppliers.slice(start, end).map(s => `<tr><td>${s.name}</td><td>${s.active}</td><td><button onclick="removeSupplier('${s.name}')">Remove</button><button onclick="toggleSupplierActive('${s.name}')">${s.active === 'Yes' ? 'Deactivate' : 'Activate'}</button></td></tr>`).join('');
+            els.supplierPageInfo.textContent = `Page ${supplierPage} of ${totalPages} (${suppliers.length} items)`;
+            applySortIndicators('supplierTable');
+        }
+
+        function changeSupplierPage(delta) { supplierPage += delta; updateSupplierList(); }
+
+        async function addReason() {
+            if (restrictByLevel('managementAccess')) return;
+            const reason = els.newReason.value.trim();
+            if (!reason || state.reasons.some(r => r.reason === reason)) return showMsg(els.reasonError, "Reason must be unique and non-empty!", true);
+            state.reasons.push({ reason, active: true });
+            els.newReason.value = '';
+            await auditLog(`Added reason ${reason}`);
+            await saveFullState();
+            updateReasons();
+        }
+
+        async function removeReason(reason) {
+            if (restrictByLevel('managementAccess')) return;
+            state.reasons = state.reasons.filter(r => r.reason !== reason);
+            await auditLog(`Removed reason ${reason}`);
+            await saveFullState();
+            updateReasons();
+        }
+
+        async function toggleReasonActive(reason) {
+            if (restrictByLevel('managementAccess')) return;
+            const r = state.reasons.find(r => r.reason === reason);
+            r.active = !r.active;
+            await auditLog(`${r.active ? 'Activated' : 'Deactivated'} reason ${reason}`);
+            await saveFullState();
+            updateReasons();
+        }
+
+        async function updateReasonList() {
+            if (restrictByLevel('managementAccess')) return;
+            const reasons = state.reasons.map(r => ({ reason: r.reason, active: r.active ? 'Yes' : 'No' }));
+            sortList(reasons, 'reasonTable');
+            reasonRowsPerPage = parseInt(els.reasonRowsPerPage.value);
+            const totalPages = Math.ceil(reasons.length / reasonRowsPerPage);
+            reasonPage = Math.max(1, Math.min(reasonPage, totalPages));
+            const start = (reasonPage - 1) * reasonRowsPerPage, end = start + reasonRowsPerPage;
+            els.reasonList.innerHTML = reasons.slice(start, end).map(r => `<tr><td>${r.reason}</td><td>${r.active}</td><td><button onclick="removeReason('${r.reason}')">Remove</button><button onclick="toggleReasonActive('${r.reason}')">${r.active === 'Yes' ? 'Deactivate' : 'Activate'}</button></td></tr>`).join('');
+            els.reasonPageInfo.textContent = `Page ${reasonPage} of ${totalPages} (${reasons.length} items)`;
+            applySortIndicators('reasonTable');
+        }
+
+        function changeReasonPage(delta) { reasonPage += delta; updateReasonList(); }
+
+        function checkBarcodeUniqueness(barcode, name) {
+            return !state.barcodeMap[barcode] || state.barcodeMap[barcode] === name;
+        }
+
+        function checkSupplierRefDuplicate(supplierRef, action, ref) {
+            if (!supplierRef) return true;
+            return !state.history.some(h => h.action === action && h.supplierRef === supplierRef && h.refNumber !== ref);
+        }
+
+        async function updateProductNames() {
+            const products = [...new Set(Object.values(state.barcodeMap))];
+            updateDatalist(els.productNamesData, products);
+        }
+
+        function suggestBarcode(action) {
+            const { productName, barcode } = action === 'search' ? els.search : els[action];
+            const name = productName.value.trim();
+            if (name && state.barcodeMap) {
+                const matchedBarcode = Object.keys(state.barcodeMap).find(k => state.barcodeMap[k] === name);
+                if (matchedBarcode) barcode.value = matchedBarcode;
+            }
+        }
+
+        function resetReceipt(action) {
+            let refToShow = '';
+            if (action === 'add' && state.currentInRef) refToShow = state.currentInRef;
+            else if (action === 'remove' && state.currentOutRef) refToShow = state.currentOutRef;
+            else if (action === 'transfer' && state.currentTransferRef) refToShow = state.currentTransferRef;
+
+            if (refToShow && !confirm(`Document closed: ${refToShow}. Proceed with new receipt?`)) return;
+
+            if (action === 'add') {
+                state.currentInRef = null;
+                els.add.reference.value = '';
+                els.add.productName.value = els.add.barcode.value = els.add.quantity.value = els.add.expiryDate.value = '';
+                els.add.receivedBy.value = els.add.deliveredBy.value = els.add.supplierRef.value = els.add.note.value = '';
+            } else if (action === 'remove') {
+                state.currentOutRef = null;
+                els.remove.reference.value = '';
+                els.remove.productName.value = els.remove.barcode.value = els.remove.quantity.value = els.remove.expiryDate.value = '';
+                els.remove.issuedTo.value = els.remove.returnTo.value = els.remove.supplierRef.value = els.remove.note.value = '';
+            } else if (action === 'transfer') {
+                state.currentTransferRef = null;
+                els.transfer.reference.value = '';
+                els.transfer.productName.value = els.transfer.barcode.value = els.transfer.quantity.value = els.transfer.expiryDate.value = '';
+                els.transfer.transferredBy.value = els.transfer.note.value = '';
+            }
+        }
+
+        async function addGoods() {
+            if (restrictByLevel('goodsAction')) return;
+            const { add } = els;
+            const ref = add.reference.value.trim(), loc = add.location.value, cat = add.category.value, subCat = add.subCategory.value,
+                  name = add.productName.value.trim(), barcode = add.barcode.value.trim(), qty = parseInt(add.quantity.value),
+                  exp = add.expiryDate.value, recBy = add.receivedBy.value.trim(), delBy = add.deliveredBy.value.trim(),
+                  supplierRef = add.supplierRef.value.trim(), note = add.note.value.trim(), recDate = new Date().toISOString().split('T')[0];
+
+            if (!loc || !cat || !subCat)
+                return showMsg(add.error, "Location, Category, and Sub-Category must be selected!", true);
+            if (!name || !barcode || isNaN(qty) || qty <= 0 || !recBy || !delBy)
+                return showMsg(add.error, "All fields except expiry date, supplier ref, and note are required!", true);
+            if (!checkBarcodeUniqueness(barcode, name))
+                return showMsg(add.error, "Barcode already exists for a different product!", true);
+            if (!checkSupplierRefDuplicate(supplierRef, 'add', ref))
+                return showMsg(add.error, "Supplier Ref must be unique per Goods IN receipt!", true);
+
+            let currentRef = ref || state.currentInRef;
+            if (!currentRef) {
+                currentRef = nextRef('add');
+                add.reference.value = currentRef;
+                state.currentInRef = currentRef;
+            }
+
+            add.spinner.classList.add('active');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            state.warehouse[loc] = state.warehouse[loc] || {};
+            state.warehouse[loc][cat] = state.warehouse[loc][cat] || {};
+            state.warehouse[loc][cat][subCat] = state.warehouse[loc][cat][subCat] || [];
+
+            const item = {
+                productName: name,
+                barcode,
+                quantity: qty,
+                expiryDate: exp || undefined,
+                receivedBy: recBy,
+                deliveredBy: delBy,
+                supplierRef: supplierRef || undefined,
+                note: note || undefined,
+                receiptDate: recDate
+            };
+            state.warehouse[loc][cat][subCat].unshift(item);
+
+            state.barcodeMap[barcode] = name;
+            const existingHist = state.history.find(h => h.refNumber === currentRef && h.action === 'add');
+            if (existingHist) {
+                existingHist.items.unshift({ ...item, loc, cat, subCat });
+                existingHist.supplierRef = supplierRef;
+            } else {
+                state.history.unshift({
+                    action: 'add',
+                    loc,
+                    cat,
+                    subCat,
+                    items: [{ ...item, loc, cat, subCat }],
+                    receivedBy: recBy,
+                    deliveredBy: delBy,
+                    supplierRef: supplierRef || undefined,
+                    timestamp: new Date().toISOString(),
+                    refNumber: currentRef
+                });
+            }
+
+            await auditLog(`Added ${qty} ${name} to ${loc} (Ref: ${currentRef})`);
+            showMsg(add.success, `Added ${qty} ${name} - Ref: ${currentRef}`);
+            add.productName.value = add.barcode.value = add.quantity.value = add.expiryDate.value = '';
+            await saveFullState();
+            await updateStatusTable();
+            await updateReceiptsTable();
+            await updateProductNames();
+
+            add.spinner.classList.remove('active');
+        }
+
+        async function removeGoods() {
+            if (restrictByLevel('goodsAction')) return;
+            const { remove } = els;
+            const ref = remove.reference.value.trim(), loc = remove.location.value, cat = remove.category.value, subCat = remove.subCategory.value,
+                  name = remove.productName.value.trim(), barcode = remove.barcode.value.trim(), qty = parseInt(remove.quantity.value),
+                  exp = remove.expiryDate.value, reason = remove.reason.value, issuedTo = remove.issuedTo.value.trim(),
+                  returnTo = remove.returnTo.value.trim(), supplierRef = remove.supplierRef.value.trim(), note = remove.note.value.trim();
+
+            if (!loc || !cat || !subCat)
+                return showMsg(remove.error, "Location, Category, and Sub-Category must be selected!", true);
+            if (!name || !barcode || isNaN(qty) || qty <= 0 || !reason || !issuedTo)
+                return showMsg(remove.error, "All fields except expiry date, return to, supplier ref, and note are required!", true);
+            if (!state.warehouse[loc]?.[cat]?.[subCat])
+                return showMsg(remove.error, "No items found in this location!", true);
+
+            const items = state.warehouse[loc][cat][subCat].filter(i => i.productName === name && i.barcode === barcode && (!exp || i.expiryDate === exp));
+            const totalQty = items.reduce((sum, i) => sum + i.quantity, 0);
+            if (totalQty < qty)
+                return showMsg(remove.error, `Only ${totalQty} available at ${loc}!`, true);
+
+            let currentRef = ref || state.currentOutRef;
+            if (!currentRef) {
+                currentRef = nextRef('remove');
+                remove.reference.value = currentRef;
+                state.currentOutRef = currentRef;
+            }
+
+            remove.spinner.classList.add('active');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            let remaining = qty, removed = [];
+            for (let i = 0; i < items.length && remaining > 0; i++) {
+                const item = items[i], idx = state.warehouse[loc][cat][subCat].indexOf(item);
+                if (item.quantity <= remaining) {
+                    removed.push({ ...item });
+                    remaining -= item.quantity;
+                    state.warehouse[loc][cat][subCat].splice(idx, 1);
+                } else {
+                    removed.push({ ...item, quantity: remaining });
+                    item.quantity -= remaining;
+                    remaining = 0;
+                }
+            }
+            if (!state.warehouse[loc][cat][subCat].length) delete state.warehouse[loc][cat][subCat];
+            if (!Object.keys(state.warehouse[loc][cat]).length) delete state.warehouse[loc][cat];
+            if (!Object.keys(state.warehouse[loc]).length) delete state.warehouse[loc];
+
+            const existingHist = state.history.find(h => h.refNumber === currentRef && h.action === 'remove');
+            if (existingHist) {
+                existingHist.items.unshift(...removed.map(i => ({ ...i, loc, cat, subCat })));
+                existingHist.supplierRef = supplierRef;
+            } else {
+                state.history.unshift({
+                    action: 'remove',
+                    loc,
+                    cat,
+                    subCat,
+                    items: removed.map(i => ({ ...i, loc, cat, subCat })),
+                    issuedTo,
+                    returnTo,
+                    reason,
+                    supplierRef: supplierRef || undefined,
+                    note: note || undefined,
+                    timestamp: new Date().toISOString(),
+                    refNumber: currentRef
+                });
+            }
+
+            await auditLog(`Removed ${qty} ${name} (Ref: ${currentRef})`);
+            showMsg(remove.success, `Removed ${qty} ${name} - Ref: ${currentRef}`);
+            remove.productName.value = remove.barcode.value = remove.quantity.value = remove.expiryDate.value = '';
+            remove.issuedTo.value = remove.returnTo.value = remove.supplierRef.value = remove.note.value = '';
+            await saveFullState();
+            await updateStatusTable();
+            await updateReceiptsTable();
+            await updateProductNames();
+
+            remove.spinner.classList.remove('active');
+        }
+
+        async function transferGoods() {
+            if (restrictByLevel('goodsAction')) return;
+            const { transfer } = els;
+            const ref = transfer.reference.value.trim(), fromLoc = transfer.fromLocation.value, toLoc = transfer.toLocation.value,
+                  cat = transfer.category.value, subCat = transfer.subCategory.value, name = transfer.productName.value.trim(),
+                  barcode = transfer.barcode.value.trim(), qty = parseInt(transfer.quantity.value), exp = transfer.expiryDate.value,
+                  transferredBy = transfer.transferredBy.value.trim(), note = transfer.note.value.trim();
+
+            if (!fromLoc || !toLoc || !cat || !subCat)
+                return showMsg(transfer.error, "From Location, To Location, Category, and Sub-Category must be selected!", true);
+            if (!name || !barcode || isNaN(qty) || qty <= 0 || !transferredBy)
+                return showMsg(transfer.error, "All fields except expiry date and note are required!", true);
+            if (fromLoc === toLoc)
+                return showMsg(transfer.error, "From and To locations must differ!", true);
+
+            let currentRef = ref || state.currentTransferRef;
+            if (!currentRef) {
+                currentRef = nextRef('transfer');
+                transfer.reference.value = currentRef;
+                state.currentTransferRef = currentRef;
+            }
+
+            if (!state.warehouse[fromLoc]?.[cat]?.[subCat])
+                return showMsg(transfer.error, "No items found in source location!", true);
+            const items = state.warehouse[fromLoc][cat][subCat].filter(i => i.productName === name && i.barcode === barcode && (!exp || i.expiryDate === exp));
+            const totalQty = items.reduce((sum, i) => sum + i.quantity, 0);
+            if (totalQty < qty)
+                return showMsg(transfer.error, `Only ${totalQty} available at ${fromLoc}!`, true);
+
+            transfer.spinner.classList.add('active');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            let remaining = qty, transferred = [];
+            for (let i = 0; i < items.length && remaining > 0; i++) {
+                const item = items[i], idx = state.warehouse[fromLoc][cat][subCat].indexOf(item);
+                if (item.quantity <= remaining) {
+                    transferred.push({ ...item });
+                    remaining -= item.quantity;
+                    state.warehouse[fromLoc][cat][subCat].splice(idx, 1);
+                } else {
+                    transferred.push({ ...item, quantity: remaining });
+                    item.quantity -= remaining;
+                    remaining = 0;
+                }
+            }
+
+            state.warehouse[toLoc] = state.warehouse[toLoc] || {};
+            state.warehouse[toLoc][cat] = state.warehouse[toLoc][cat] || {};
+            state.warehouse[toLoc][cat][subCat] = state.warehouse[toLoc][cat][subCat] || [];
+            state.warehouse[toLoc][cat][subCat].unshift(...transferred);
+
+            const existingHist = state.history.find(h => h.refNumber === currentRef && h.action === 'transfer');
+            if (existingHist) {
+                existingHist.items.unshift(...transferred.map(i => ({ ...i, fromLoc, toLoc, cat, subCat })));
+            } else {
+                state.history.unshift({
+                    action: 'transfer',
+                    fromLoc,
+                    toLoc,
+                    cat,
+                    subCat,
+                    items: transferred.map(i => ({ ...i, fromLoc, toLoc, cat, subCat })),
+                    transferredBy,
+                    note: note || undefined,
+                    timestamp: new Date().toISOString(),
+                    refNumber: currentRef
+                });
+            }
+
+            await auditLog(`Transferred ${qty} ${name} from ${fromLoc} to ${toLoc} (Ref: ${currentRef})`);
+            showMsg(transfer.success, `Transferred ${qty} ${name} - Ref: ${currentRef}`);
+            transfer.productName.value = transfer.barcode.value = transfer.quantity.value = transfer.expiryDate.value = transfer.transferredBy.value = transfer.note.value = '';
+            await saveFullState();
+            await updateStatusTable();
+            await updateReceiptsTable();
+            await updateProductNames();
+
+            transfer.spinner.classList.remove('active');
+        }
+
+        function sortList(list, tableId) {
+            const { column, direction } = sortStates[tableId] || {};
+            if (!column) return;
+            list.sort((a, b) => {
+                const aVal = a[column] || '', bVal = b[column] || '';
+                return direction === 'asc' ? aVal.localeCompare(bVal, undefined, { numeric: true }) : bVal.localeCompare(aVal, undefined, { numeric: true });
+            });
+        }
+
+        function formatLocalDateTime(date) {
+            const pad = (n) => String(n).padStart(2, '0');
+            return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+        }
+
+        async function updateAuditTrail() {
+            if (state.auditTrail.length > 1000) state.auditTrail = state.auditTrail.slice(0, 1000); // Keep newest 1000
+            const auditEntries = state.auditTrail.map(entry => ({ entry }));
+            sortList(auditEntries, 'auditTable');
+            auditRowsPerPage = parseInt(els.auditRowsPerPage.value);
+            const totalPages = Math.ceil(auditEntries.length / auditRowsPerPage);
+            auditPage = Math.max(1, Math.min(auditPage, totalPages));
+            const start = (auditPage - 1) * auditRowsPerPage, end = start + auditRowsPerPage;
+            els.auditBody.innerHTML = auditEntries.slice(start, end).map(e => `<tr><td>${e.entry}</td></tr>`).join('');
+            els.auditPageInfo.textContent = `Page ${auditPage} of ${totalPages} (${auditEntries.length} items)`;
+            applySortIndicators('auditTable');
+        }
+
+        function changeAuditPage(delta) { auditPage += delta; updateAuditTrail(); }
+
+        async function exportAuditTrail() {
+            if (restrictByLevel('exportTable')) return;
+            downloadCSV('audit_trail', ['Audit Trail', ''], state.auditTrail.map(l => [l]));
+        }
+
+        async function auditLog(action) {
+            state.auditTrail.unshift(`${formatLocalDateTime(new Date())} - ${currentUser}: ${action}`);
+            await saveFullState();
+            await updateAuditTrail();
+        }
+
+        async function updateStatusTable() {
+            const filter = els.statusFilter.value.toLowerCase();
+            let aggregated = {};
+            for (const loc in state.warehouse) {
+                for (const cat in state.warehouse[loc]) {
+                    for (const subCat in state.warehouse[loc][cat]) {
+                        state.warehouse[loc][cat][subCat].forEach(item => {
+                            const key = `${loc}|${cat}|${subCat}|${item.productName}|${item.expiryDate || 'N/A'}|${item.barcode}`;
+                            if (!aggregated[key]) {
+                                aggregated[key] = {
+                                    loc, cat, subCat,
+                                    productName: item.productName,
+                                    quantity: 0,
+                                    expiryDate: item.expiryDate || 'N/A',
+                                    barcode: item.barcode,
+                                    class: ''
+                                };
+                            }
+                            aggregated[key].quantity += item.quantity;
+                        });
+                    }
+                }
+            }
+
+            let rows = Object.values(aggregated).map(r => {
+                r.class = r.quantity < 5 ? 'low-stock' : '';
+                return r;
+            });
+
+            rows = rows.filter(r => (
+                r.loc.toLowerCase().includes(filter) || r.cat.toLowerCase().includes(filter) ||
+                r.subCat.toLowerCase().includes(filter) || r.productName.toLowerCase().includes(filter) ||
+                r.barcode.toLowerCase().includes(filter))
+            );
+
+            sortList(rows, 'statusTable');
+            rowsPerPage = parseInt(els.rowsPerPage.value);
+            const totalPages = Math.ceil(rows.length / rowsPerPage);
+            currentPage = Math.max(1, Math.min(currentPage, totalPages));
+            const start = (currentPage - 1) * rowsPerPage, end = start + rowsPerPage;
+
+            els.statusBody.innerHTML = rows.slice(start, end).map(r =>
+                `<tr class="${r.class}"><td>${r.loc}</td><td>${r.cat}</td><td>${r.subCat}</td><td>${r.productName}</td><td>${r.quantity}</td><td>${r.expiryDate}</td><td>${r.barcode}</td></tr>`
+            ).join('');
+            els.pageInfo.textContent = `Page ${currentPage} of ${totalPages} (${rows.length} items)`;
+            applySortIndicators('statusTable');
+        }
+
+        function quickFilterStatus(type) {
+            const today = new Date().toISOString().split('T')[0];
+            if (type === 'expired') {
+                els.statusBody.innerHTML = Array.from(document.querySelectorAll('#statusTable tr'))
+                    .slice(1).filter(tr => tr.cells[5].textContent !== 'N/A' && tr.cells[5].textContent < today)
+                    .map(tr => tr.outerHTML).join('');
+            } else if (type === 'low') {
+                els.statusBody.innerHTML = Array.from(document.querySelectorAll('#statusTable tr'))
+                    .slice(1).filter(tr => parseInt(tr.cells[4].textContent) < 5)
+                    .map(tr => tr.outerHTML).join('');
+            }
+        }
+
+        function changePage(delta) { currentPage += delta; updateStatusTable(); }
+
+        async function exportStatusTable() {
+            if (restrictByLevel('exportTable')) return;
+            const rows = Array.from(document.querySelectorAll('#statusTable tr')).map(row =>
+                Array.from(row.cells).map(cell => `"${cell.textContent.replace(/"/g, '""')}"`).join(',')
+            );
+            const totalQty = Array.from(document.querySelectorAll('#statusTable tr td:nth-child(5)'))
+                .slice(1).reduce((sum, td) => sum + (parseInt(td.textContent) || 0), 0);
+            const uniqueProducts = new Set(Array.from(document.querySelectorAll('#statusTable tr td:nth-child(4)'))
+                .slice(1).map(td => td.textContent)).size;
+            downloadCSV('warehouse_status', ['Warehouse Status', ''], [
+                [rows[0]],
+                ...rows.slice(1),
+                [`"Total Quantity: ${totalQty}, Unique Products: ${uniqueProducts}"`]
+            ]);
+        }
+
+        function toggleSearchFields() {
+            const type = els.search.type.value;
+            ['searchRemoveDateFromGroup', 'searchRemoveDateToGroup', 'searchReceiveDateFromGroup',
+             'searchReceiveDateToGroup', 'searchTransferDateFromGroup', 'searchTransferDateToGroup']
+                .forEach(id => document.getElementById(id).style.display = 'none');
+            if (type === 'removed') {
+                document.getElementById('searchRemoveDateFromGroup').style.display = 'block';
+                document.getElementById('searchRemoveDateToGroup').style.display = 'block';
+            } else if (type === 'received') {
+                document.getElementById('searchReceiveDateFromGroup').style.display = 'block';
+                document.getElementById('searchReceiveDateToGroup').style.display = 'block';
+            } else if (type === 'transferred') {
+                document.getElementById('searchTransferDateFromGroup').style.display = 'block';
+                document.getElementById('searchTransferDateToGroup').style.display = 'block';
+            }
+        }
+
+        async function searchGoods() {
+            const search = els.search, type = search.type.value, cat = search.category.value, subCat = search.subCategory.value,
+                qty = parseInt(search.quantity.value) || 0, name = search.productName.value.trim().toLowerCase(),
+                barcode = search.barcode.value.trim().toLowerCase(), delBy = search.deliveredBy.value.trim().toLowerCase(),
+                deptFilter = search.departmentFilter.value, staffNameFilter = search.staffNameFilter.value,
+                expFrom = search.expiryFrom.value, expTo = search.expiryTo.value,
+                removeFrom = search.removeDateFrom.value, removeTo = search.removeDateTo.value,
+                receiveFrom = search.receiveDateFrom.value, receiveTo = search.receiveDateTo.value,
+                transferFrom = search.transferDateFrom.value, transferTo = search.transferDateTo.value;
+
+            let results = [];
+            if (type === "current") {
+                let aggregated = {};
+                for (const loc in state.warehouse) {
+                    const cats = cat === 'All' ? Object.keys(state.warehouse[loc]) : [cat];
+                    for (const c of cats) {
+                        if (!state.warehouse[loc][c]) continue;
+                        const subCats = subCat === 'All' ? Object.keys(state.warehouse[loc][c]) : [subCat];
+                        for (const s of subCats) {
+                            if (state.warehouse[loc][c]?.[s]) {
+                                state.warehouse[loc][c][s].forEach(item => {
+                                    const key = `${loc}|${c}|${s}|${item.productName}|${item.expiryDate || 'N/A'}|${item.barcode}`;
+                                    if (!aggregated[key]) {
+                                        aggregated[key] = {
+                                            location: loc,
+                                            category: c,
+                                            subCategory: s,
+                                            productName: item.productName,
+                                            quantity: 0,
+                                            expiryDate: item.expiryDate || 'N/A',
+                                            barcode: item.barcode
+                                        };
+                                    }
+                                    aggregated[key].quantity += item.quantity;
+                                });
+                            }
+                        }
+                    }
+                }
+                results = Object.values(aggregated).filter(i =>
+                    i.quantity >= qty && (!name || i.productName.toLowerCase().includes(name)) &&
+                    (!barcode || i.barcode.toLowerCase().includes(barcode)) &&
+                    (!expFrom || i.expiryDate >= expFrom) && (!expTo || i.expiryDate <= expTo)
+                );
+                search.results.innerHTML = results.length ?
+                    `<h3>Current Stock</h3><table id="searchResultsTable"><tr><th data-sort="location" onclick="sortTable('searchResultsTable', 'location')">Loc</th><th>Cat</th><th>Sub-Cat</th><th data-sort="productName" onclick="sortTable('searchResultsTable', 'productName')">Name</th><th data-sort="quantity" onclick="sortTable('searchResultsTable', 'quantity')">Qty</th><th data-sort="expiryDate" onclick="sortTable('searchResultsTable', 'expiryDate')">Exp</th><th data-sort="barcode" onclick="sortTable('searchResultsTable', 'barcode')">Barcode</th></tr>${results.map(i => `<tr><td>${i.location}</td><td>${i.category}</td><td>${i.subCategory}</td><td>${i.productName}</td><td>${i.quantity}</td><td>${i.expiryDate}</td><td>${i.barcode}</td></tr>`).join('')}</table>`
+                    : "No matches.";
+            } else if (type === "removed") {
+                results = state.history.filter(h => h.action === "remove" && (cat === 'All' || h.cat === cat) && (subCat === 'All' || h.subCat === subCat)).flatMap(h =>
+                    h.items.map(i => {
+                        const staffInfo = state.staff.find(s => s.name === h.issuedTo);
+                        return { ...i, location: i.loc, category: i.cat, subCategory: i.subCat, timestamp: h.timestamp, issuedTo: h.issuedTo, department: staffInfo ? staffInfo.department : 'Unknown', refNumber: h.refNumber, reason: h.reason, returnTo: h.returnTo, supplierRef: h.supplierRef, note: h.note };
+                    })
+                ).filter(i =>
+                    (!name || i.productName.toLowerCase().includes(name)) && (!barcode || i.barcode.toLowerCase().includes(barcode)) &&
+                    (deptFilter === 'All' || i.department === deptFilter) &&
+                    (staffNameFilter === 'All' || i.issuedTo === staffNameFilter) &&
+                    (!expFrom || i.expiryDate >= expFrom) && (!expTo || i.expiryDate <= expTo) &&
+                    (!removeFrom || i.timestamp.split('T')[0] >= removeFrom) && (!removeTo || i.timestamp.split('T')[0] <= removeTo)
+                );
+                search.results.innerHTML = results.length ?
+                    `<h3>Removed Items</h3><table id="searchResultsTable"><tr><th data-sort="location" onclick="sortTable('searchResultsTable', 'location')">Loc</th><th>Cat</th><th>Sub-Cat</th><th data-sort="productName" onclick="sortTable('searchResultsTable', 'productName')">Name</th><th data-sort="quantity" onclick="sortTable('searchResultsTable', 'quantity')">Qty</th><th data-sort="expiryDate" onclick="sortTable('searchResultsTable', 'expiryDate')">Exp</th><th data-sort="issuedTo" onclick="sortTable('searchResultsTable', 'issuedTo')">Issued To</th><th data-sort="department" onclick="sortTable('searchResultsTable', 'department')">Dept</th><th data-sort="barcode" onclick="sortTable('searchResultsTable', 'barcode')">Barcode</th><th data-sort="timestamp" onclick="sortTable('searchResultsTable', 'timestamp')">Remove Date</th><th>Ref</th><th>Reason</th><th>Return To</th><th>Sup Ref</th><th>Note</th></tr>${results.map(i => `<tr><td>${i.location}</td><td>${i.category}</td><td>${i.subCategory}</td><td>${i.productName}</td><td>${i.quantity}</td><td>${i.expiryDate || 'N/A'}</td><td>${i.issuedTo}</td><td>${i.department}</td><td>${i.barcode}</td><td>${i.timestamp.split('T')[0]}</td><td>${i.refNumber}</td><td>${i.reason}</td><td>${i.returnTo || 'N/A'}</td><td>${i.supplierRef || 'N/A'}</td><td>${i.note || 'N/A'}</td></tr>`).join('')}</table>`
+                    : "No matches.";
+            } else if (type === "received") {
+                results = state.history.filter(h => h.action === "add" && (cat === 'All' || h.cat === cat) && (subCat === 'All' || h.subCat === subCat)).flatMap(h =>
+                    h.items.map(i => ({ ...i, location: i.loc, category: i.cat, subCategory: i.subCat, timestamp: h.timestamp, refNumber: h.refNumber, supplierRef: h.supplierRef }))
+                ).filter(i =>
+                    (!name || i.productName.toLowerCase().includes(name)) && (!barcode || i.barcode.toLowerCase().includes(barcode)) &&
+                    (staffNameFilter === 'All' || i.receivedBy === staffNameFilter) && (!delBy || i.deliveredBy.toLowerCase().includes(delBy)) &&
+                    (!expFrom || i.expiryDate >= expFrom) && (!expTo || i.expiryDate <= expTo) &&
+                    (!receiveFrom || i.timestamp.split('T')[0] >= receiveFrom) && (!receiveTo || i.timestamp.split('T')[0] <= receiveTo)
+                );
+                search.results.innerHTML = results.length ?
+                    `<h3>Received Items</h3><table id="searchResultsTable"><tr><th data-sort="location" onclick="sortTable('searchResultsTable', 'location')">Loc</th><th>Cat</th><th>Sub-Cat</th><th data-sort="productName" onclick="sortTable('searchResultsTable', 'productName')">Name</th><th data-sort="quantity" onclick="sortTable('searchResultsTable', 'quantity')">Qty</th><th data-sort="expiryDate" onclick="sortTable('searchResultsTable', 'expiryDate')">Exp</th><th data-sort="receivedBy" onclick="sortTable('searchResultsTable', 'receivedBy')">Rec By</th><th>Del By</th><th data-sort="barcode" onclick="sortTable('searchResultsTable', 'barcode')">Barcode</th><th>Sup Ref</th><th data-sort="receiptDate" onclick="sortTable('searchResultsTable', 'receiptDate')">Rec Date</th><th data-sort="timestamp" onclick="sortTable('searchResultsTable', 'timestamp')">Receive Date</th><th>Ref</th><th>Note</th></tr>${results.map(i => `<tr><td>${i.location}</td><td>${i.category}</td><td>${i.subCategory}</td><td>${i.productName}</td><td>${i.quantity}</td><td>${i.expiryDate || 'N/A'}</td><td>${i.receivedBy}</td><td>${i.deliveredBy}</td><td>${i.barcode}</td><td>${i.supplierRef || 'N/A'}</td><td>${i.receiptDate || 'N/A'}</td><td>${i.timestamp.split('T')[0]}</td><td>${i.refNumber}</td><td>${i.note || 'N/A'}</td></tr>`).join('')}</table>`
+                    : "No matches.";
+            } else if (type === "transferred") {
+                results = state.history.filter(h => h.action === "transfer" && (cat === 'All' || h.cat === cat) && (subCat === 'All' || h.subCat === subCat)).flatMap(h =>
+                    h.items.map(i => ({ ...i, fromLocation: i.fromLoc, toLocation: i.toLoc, category: i.cat, subCategory: i.subCat, timestamp: h.timestamp, transferredBy: h.transferredBy, refNumber: h.refNumber, note: h.note }))
+                ).filter(i =>
+                    (!name || i.productName.toLowerCase().includes(name)) && (!barcode || i.barcode.toLowerCase().includes(barcode)) &&
+                    (staffNameFilter === 'All' || i.transferredBy === staffNameFilter) &&
+                    (!expFrom || i.expiryDate >= expFrom) && (!expTo || i.expiryDate <= expTo) &&
+                    (!transferFrom || i.timestamp.split('T')[0] >= transferFrom) &&
+                    (!transferTo || i.timestamp.split('T')[0] <= transferTo)
+                );
+                search.results.innerHTML = results.length ?
+                    `<h3>Transferred Items</h3><table id="searchResultsTable"><tr><th data-sort="fromLocation" onclick="sortTable('searchResultsTable', 'fromLocation')">From Loc</th><th data-sort="toLocation" onclick="sortTable('searchResultsTable', 'toLocation')">To Loc</th><th>Cat</th><th>Sub-Cat</th><th data-sort="productName" onclick="sortTable('searchResultsTable', 'productName')">Name</th><th data-sort="quantity" onclick="sortTable('searchResultsTable', 'quantity')">Qty</th><th data-sort="expiryDate" onclick="sortTable('searchResultsTable', 'expiryDate')">Exp</th><th data-sort="transferredBy" onclick="sortTable('searchResultsTable', 'transferredBy')">Transferred By</th><th data-sort="barcode" onclick="sortTable('searchResultsTable', 'barcode')">Barcode</th><th data-sort="timestamp" onclick="sortTable('searchResultsTable', 'timestamp')">Transfer Date</th><th>Ref</th><th>Note</th></tr>${results.map(i => `<tr><td>${i.fromLocation}</td><td>${i.toLocation}</td><td>${i.category}</td><td>${i.subCategory}</td><td>${i.productName}</td><td>${i.quantity}</td><td>${i.expiryDate || 'N/A'}</td><td>${i.transferredBy}</td><td>${i.barcode}</td><td>${i.timestamp.split('T')[0]}</td><td>${i.refNumber}</td><td>${i.note || 'N/A'}</td></tr>`).join('')}</table>`
+                    : "No matches.";
+            }
+            applySortIndicators('searchResultsTable');
+        }
+
+        async function exportSearchResults() {
+            if (restrictByLevel('exportTable')) return;
+            const table = document.getElementById('searchResultsTable');
+            if (!table) return;
+            const rows = Array.from(table.querySelectorAll('tr')).map(row =>
+                Array.from(row.cells).map(cell => `"${cell.textContent.replace(/"/g, '""')}"`).join(',')
+            );
+            const totalQty = Array.from(table.querySelectorAll('tr td:nth-child(5)')).slice(1)
+                .reduce((sum, td) => sum + (parseInt(td.textContent) || 0), 0);
+            const uniqueProducts = new Set(Array.from(table.querySelectorAll('tr td:nth-child(4)')).slice(1).map(td => td.textContent)).size;
+            downloadCSV('search_results', ['Search Results', ''], [
+                [rows[0]],
+                ...rows.slice(1),
+                [`"Total Quantity: ${totalQty}, Unique Products: ${uniqueProducts}"`]
+            ]);
+        }
+
+        async function updateReceiptsTable() {
+            const generalFilter = els.receiptsGeneralFilter.value.toLowerCase(),
+                  refFilter = els.receiptsFilter.value.toLowerCase(),
+                  reasonFilter = els.receiptsReasonFilter.value.toLowerCase(),
+                  noteFilter = els.receiptsNoteFilter.value.toLowerCase(),
+                  dateFrom = els.receiptsDateFrom.value,
+                  dateTo = els.receiptsDateTo.value;
+
+            let rows = state.history.flatMap(h =>
+                h.items.map(i => {
+                    if (h.action === 'add') {
+                        return {
+                            refNumber: h.refNumber,
+                            type: 'In',
+                            date: h.timestamp.split('T')[0],
+                            location: i.loc,
+                            category: i.cat,
+                            subCategory: i.subCat,
+                            productName: i.productName,
+                            quantity: i.quantity,
+                            expiryDate: i.expiryDate || 'N/A',
+                            staff: h.receivedBy,
+                            department: state.staff.find(s => s.name === h.receivedBy)?.department || 'Unknown',
+                            delByRetTo: h.deliveredBy,
+                            barcode: i.barcode,
+                            supplierRef: h.supplierRef || 'N/A',
+                            reason: 'N/A',
+                            note: i.note || 'N/A'
+                        };
+                    } else if (h.action === 'remove') {
+                        const staffInfo = state.staff.find(s => s.name === h.issuedTo);
+                        return {
+                            refNumber: h.refNumber,
+                            type: 'Out',
+                            date: h.timestamp.split('T')[0],
+                            location: i.loc,
+                            category: i.cat,
+                            subCategory: i.subCat,
+                            productName: i.productName,
+                            quantity: i.quantity,
+                            expiryDate: i.expiryDate || 'N/A',
+                            staff: h.issuedTo,
+                            department: staffInfo ? staffInfo.department : 'Unknown',
+                            delByRetTo: h.returnTo || 'N/A',
+                            barcode: i.barcode,
+                            supplierRef: h.supplierRef || 'N/A',
+                            reason: h.reason,
+                            note: h.note || 'N/A'
+                        };
+                    } else if (h.action === 'transfer') {
+                        return {
+                            refNumber: h.refNumber,
+                            type: 'Transfer',
+                            date: h.timestamp.split('T')[0],
+                            location: `${i.fromLoc} to ${i.toLoc}`,
+                            category: i.cat,
+                            subCategory: i.subCat,
+                            productName: i.productName,
+                            quantity: i.quantity,
+                            expiryDate: i.expiryDate || 'N/A',
+                            staff: h.transferredBy,
+                            department: state.staff.find(s => s.name === h.transferredBy)?.department || 'Unknown',
+                            delByRetTo: `${i.fromLoc} to ${i.toLoc}`,
+                            barcode: i.barcode,
+                            supplierRef: 'N/A',
+                            reason: 'N/A',
+                            note: h.note || 'N/A'
+                        };
+                    }
+                })
+            ).filter(r => (
+                (!generalFilter || Object.values(r).some(v => v.toString().toLowerCase().includes(generalFilter))) &&
+                (!refFilter || r.refNumber.toLowerCase().includes(refFilter)) &&
+                (!reasonFilter || r.reason.toLowerCase().includes(reasonFilter)) &&
+                (!noteFilter || r.note.toLowerCase().includes(noteFilter)) &&
+                (!dateFrom || r.date >= dateFrom) && (!dateTo || r.date <= dateTo)
+            ));
+
+            sortList(rows, 'receiptsTable');
+            receiptsRowsPerPage = parseInt(els.receiptsRowsPerPage.value);
+            const totalPages = Math.ceil(rows.length / receiptsRowsPerPage);
+            receiptsPage = Math.max(1, Math.min(receiptsPage, totalPages));
+            const start = (receiptsPage - 1) * receiptsRowsPerPage, end = start + receiptsRowsPerPage;
+            els.receiptsBody.innerHTML = rows.slice(start, end).map(r =>
+                `<tr><td>${r.refNumber}</td><td>${r.type}</td><td>${r.date}</td><td>${r.location}</td><td>${r.category}</td><td>${r.subCategory}</td><td>${r.productName}</td><td>${r.quantity}</td><td>${r.expiryDate}</td><td>${r.staff}</td><td>${r.department}</td><td>${r.delByRetTo}</td><td>${r.barcode}</td><td>${r.supplierRef}</td><td>${r.reason}</td><td>${r.note}</td></tr>`
+            ).join('');
+            els.receiptsPageInfo.textContent = `Page ${receiptsPage} of ${totalPages} (${rows.length} items)`;
+            applySortIndicators('receiptsTable');
+        }
+
+        function changeReceiptsPage(delta) { receiptsPage += delta; updateReceiptsTable(); }
+
+        function quickFilterReceipts(period) {
+            const today = new Date(), start = new Date(today);
+            if (period === 'today') start.setDate(today.getDate());
+            else if (period === 'week') start.setDate(today.getDate() - 7);
+            els.receiptsDateFrom.value = start.toISOString().split('T')[0];
+            els.receiptsDateTo.value = today.toISOString().split('T')[0];
+            updateReceiptsTable();
+        }
+
+        async function exportFilteredReceipts() {
+            if (restrictByLevel('exportTable')) return;
+            const generalFilter = els.receiptsGeneralFilter.value.toLowerCase(),
+                  refFilter = els.receiptsFilter.value.toLowerCase(),
+                  reasonFilter = els.receiptsReasonFilter.value.toLowerCase(),
+                  noteFilter = els.receiptsNoteFilter.value.toLowerCase(),
+                  dateFrom = els.receiptsDateFrom.value,
+                  dateTo = els.receiptsDateTo.value;
+
+            const rows = state.history.flatMap(h =>
+                h.items.map(i => {
+                    if (h.action === 'add') {
+                        return [
+                            h.refNumber, 'In', h.timestamp.split('T')[0], i.loc, i.cat, i.subCat, i.productName, i.quantity,
+                            i.expiryDate || 'N/A', h.receivedBy, state.staff.find(s => s.name === h.receivedBy)?.department || 'Unknown', h.deliveredBy, i.barcode, h.supplierRef || 'N/A', 'N/A', i.note || 'N/A'
+                        ];
+                    } else if (h.action === 'remove') {
+                        const staffInfo = state.staff.find(s => s.name === h.issuedTo);
+                        return [
+                            h.refNumber, 'Out', h.timestamp.split('T')[0], i.loc, i.cat, i.subCat, i.productName, i.quantity,
+                            i.expiryDate || 'N/A', h.issuedTo, staffInfo ? staffInfo.department : 'Unknown', h.returnTo || 'N/A', i.barcode, h.supplierRef || 'N/A', h.reason, h.note || 'N/A'
+                        ];
+                    } else if (h.action === 'transfer') {
+                        return [
+                            h.refNumber, 'Transfer', h.timestamp.split('T')[0], `${i.fromLoc} to ${i.toLoc}`, i.cat, i.subCat, i.productName, i.quantity,
+                            i.expiryDate || 'N/A', h.transferredBy, state.staff.find(s => s.name === h.transferredBy)?.department || 'Unknown', `${i.fromLoc} to ${i.toLoc}`, i.barcode, 'N/A', 'N/A', h.note || 'N/A'
+                        ];
+                    }
+                })
+            ).filter(r => (
+                (!generalFilter || r.some(v => v.toString().toLowerCase().includes(generalFilter))) &&
+                (!refFilter || r[0].toLowerCase().includes(refFilter)) &&
+                (!reasonFilter || r[14].toLowerCase().includes(reasonFilter)) &&
+                (!noteFilter || r[15].toLowerCase().includes(noteFilter)) &&
+                (!dateFrom || r[2] >= dateFrom) && (!dateTo || r[2] <= dateTo)
+            ));
+
+            const totalQty = rows.reduce((sum, r) => sum + (parseInt(r[7]) || 0), 0);
+            const uniqueProducts = new Set(rows.map(r => r[6])).size;
+            downloadCSV('filtered_receipts', ['Filtered Receipts', ''], [
+                ['Ref Number,Type,Date,Location,Category,Sub-Category,Product Name,Quantity,Expiry Date,Staff,Department,Del By/Ret To,Barcode,Supplier Ref,Reason,Note'],
+                ...rows.map(r => r.map(v => `"${v.toString().replace(/"/g, '""')}"`).join(',')),
+                [`"Total Quantity: ${totalQty}, Unique Products: ${uniqueProducts}"`]
+            ]);
+        }
+
+        async function exportGoodsInReport() {
+            if (restrictByLevel('exportTable')) return;
+            const rows = state.history.filter(h => h.action === 'add').flatMap(h =>
+                h.items.map(i => [
+                    h.refNumber, h.timestamp.split('T')[0], i.loc, i.cat, i.subCat, i.productName, i.quantity,
+                    i.expiryDate || 'N/A', h.receivedBy, h.deliveredBy, i.barcode, h.supplierRef || 'N/A', i.note || 'N/A'
+                ])
+            );
+            const totalQty = rows.reduce((sum, r) => sum + r[6], 0);
+            const uniqueProducts = new Set(rows.map(r => r[5])).size;
+            downloadCSV('goods_in', ['Goods In Receipt', ''], [
+                ['Ref Number,Date,Location,Category,Sub-Category,Product Name,Quantity,Expiry Date,Received By,Delivered By,Barcode,Supplier Ref,Note'],
+                ...rows.map(r => r.map(v => `"${v.toString().replace(/"/g, '""')}"`).join(',')),
+                [`"Total Quantity: ${totalQty}, Unique Products: ${uniqueProducts}"`]
+            ]);
+        }
+
+        async function exportGoodsOutReport() {
+            if (restrictByLevel('exportTable')) return;
+            const rows = state.history.filter(h => h.action === 'remove').flatMap(h =>
+                h.items.map(i => {
+                    const staffInfo = state.staff.find(s => s.name === h.issuedTo);
+                    return [
+                        h.refNumber, h.timestamp.split('T')[0], i.loc, i.cat, i.subCat, i.productName, i.quantity,
+                        i.expiryDate || 'N/A', h.issuedTo, staffInfo ? staffInfo.department : 'Unknown', h.returnTo || 'N/A', i.barcode, h.supplierRef || 'N/A', h.reason, h.note || 'N/A'
+                    ];
+                })
+            );
+            const totalQty = rows.reduce((sum, r) => sum + r[6], 0);
+            const uniqueProducts = new Set(rows.map(r => r[5])).size;
+            downloadCSV('goods_out', ['Goods Out Receipt', ''], [
+                ['Ref Number,Date,Location,Category,Sub-Category,Product Name,Quantity,Expiry Date,Issued To,Department,Return To,Barcode,Supplier Ref,Reason,Note'],
+                ...rows.map(r => r.map(v => `"${v.toString().replace(/"/g, '""')}"`).join(',')),
+                [`"Total Quantity: ${totalQty}, Unique Products: ${uniqueProducts}"`]
+            ]);
+        }
+
+        async function exportGoodsTransferReport() {
+            if (restrictByLevel('exportTable')) return;
+            const rows = state.history.filter(h => h.action === 'transfer').flatMap(h =>
+                h.items.map(i => [
+                    h.refNumber, h.timestamp.split('T')[0], i.fromLoc, i.toLoc, i.cat, i.subCat, i.productName, i.quantity,
+                    i.expiryDate || 'N/A', h.transferredBy, i.barcode, h.note || 'N/A'
+                ])
+            );
+            const totalQty = rows.reduce((sum, r) => sum + r[7], 0);
+            const uniqueProducts = new Set(rows.map(r => r[6])).size;
+            downloadCSV('goods_transfer', ['Goods Transfer Report', ''], [
+                ['Ref Number,Date,From Location,To Location,Category,Sub-Category,Product Name,Quantity,Expiry Date,Transferred By,Barcode,Note'],
+                ...rows.map(r => r.map(v => `"${v.toString().replace(/"/g, '""')}"`).join(',')),
+                [`"Total Quantity: ${totalQty}, Unique Products: ${uniqueProducts}"`]
+            ]);
+        }
+
+        function downloadCSV(filename, titleRows, dataRows) {
+            const csv = [...titleRows, ...dataRows].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${filename}_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        async function undoLastAction() {
+            if (restrictByLevel('undo') || !state.history.length) return;
+            if (!confirm('Are you sure you want to undo the last action?')) return;
+            const last = state.history.shift();
+            if (last.action === 'add') {
+                last.items.forEach(item => {
+                    const subCatItems = state.warehouse[item.loc]?.[item.cat]?.[item.subCat];
+                    if (subCatItems) {
+                        const idx = subCatItems.findIndex(i =>
+                            i.productName === item.productName && i.barcode === item.barcode && i.quantity === item.quantity
+                        );
+                        if (idx !== -1) subCatItems.splice(idx, 1);
+                        if (!subCatItems.length) delete state.warehouse[item.loc][item.cat][item.subCat];
+                        if (!Object.keys(state.warehouse[item.loc][item.cat]).length) delete state.warehouse[item.loc][item.cat];
+                        if (!Object.keys(state.warehouse[item.loc]).length) delete state.warehouse[item.loc];
+                    }
+                });
+            } else if (last.action === 'remove') {
+                state.warehouse[last.loc] = state.warehouse[last.loc] || {};
+                state.warehouse[last.loc][last.cat] = state.warehouse[last.loc][last.cat] || {};
+                state.warehouse[last.loc][last.cat][last.subCat] = state.warehouse[last.loc][last.cat][last.subCat] || [];
+                state.warehouse[last.loc][last.cat][last.subCat].unshift(...last.items);
+            } else if (last.action === 'transfer') {
+                state.warehouse[last.fromLoc] = state.warehouse[last.fromLoc] || {};
+                state.warehouse[last.fromLoc][last.cat] = state.warehouse[last.fromLoc][last.cat] || {};
+                state.warehouse[last.fromLoc][last.cat][last.subCat] = state.warehouse[last.fromLoc][last.cat][last.subCat] || [];
+                last.items.forEach(item => {
+                    const toSubCat = state.warehouse[last.toLoc]?.[item.cat]?.[item.subCat];
+                    if (toSubCat) {
+                        const idx = toSubCat.findIndex(i =>
+                            i.productName === item.productName && i.barcode === item.barcode && i.quantity === item.quantity
+                        );
+                        if (idx !== -1) toSubCat.splice(idx, 1);
+                        if (!toSubCat.length) delete state.warehouse[last.toLoc][item.cat][item.subCat];
+                        if (!Object.keys(state.warehouse[last.toLoc][item.cat]).length) delete state.warehouse[last.toLoc][item.cat];
+                        if (!Object.keys(state.warehouse[last.toLoc]).length) delete state.warehouse[last.toLoc];
+                    }
+                    state.warehouse[last.fromLoc][last.cat][last.subCat].unshift(item);
+                });
+            }
+            await auditLog(`Undo: Reversed ${last.action} (Ref: ${last.refNumber})`);
+            await saveFullState();
+            await updateStatusTable();
+            await updateReceiptsTable();
+            await updateProductNames();
+        }
+
+        async function confirmResetWarehouse() {
+            if (restrictByLevel('resetWarehouse') || !confirm('Are you sure you want to reset the warehouse? This cannot be undone!')) return;
+            state = { ...INITIAL_STATE };
+            await auditLog('Reset warehouse');
+            await saveFullState();
+            await updateAll();
+        }
+
+        async function exportData() {
+            if (restrictByLevel('exportData')) return;
+            const data = JSON.stringify(state);
+            const blob = new Blob([data], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `warehouse_data_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            await auditLog('Exported warehouse data');
+        }
+
+        async function importData() {
+            if (restrictByLevel('importData')) return;
+            const file = els.controls.import.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    state = { ...state, ...JSON.parse(e.target.result) };
+                    await saveFullState();
+                    await updateAll();
+                    await auditLog('Imported warehouse data');
+                } catch (err) { alert('Invalid file format!'); }
+            };
+            reader.readAsText(file);
+        }
+
+        window.onload = async () => {
+            els.authSection.style.display = 'block';
+            els.mainContent.style.display = 'none';
+            await loadFullState();
+            await updateAll();
+
+            els.add.location.value = 'TestLocation';
+            els.add.category.value = 'General';
+            els.add.subCategory.value = 'Misc';
+            els.remove.location.value = 'TestLocation';
+            els.remove.category.value = 'General';
+            els.remove.subCategory.value = 'Misc';
+            els.transfer.fromLocation.value = 'TestLocation';
+            els.transfer.toLocation.value = 'TestLocation';
+            els.transfer.category.value = 'General';
+            els.transfer.subCategory.value = 'Misc';
+            els.search.category.value = 'General';
+            els.search.subCategory.value = 'Misc';
+
+            resetReceipt('add');
+            resetReceipt('remove');
+            resetReceipt('transfer');
+        };
+    </script>
+</body>
+</html>
